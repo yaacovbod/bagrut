@@ -29,7 +29,7 @@
     import { 
       BookOpen, CheckCircle, XCircle, ArrowLeft, ArrowRight, 
       Award, FileText, Sparkles, Loader2, MessageSquare, 
-      Download, LayoutDashboard, ChevronLeft, Search 
+      LayoutDashboard, ChevronLeft
     } from 'lucide-react'
 
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyYYG_UeQY4eaoDcXe7eaHdC71k9HPi-mgZF09s4Yl6MCsXIkqnJFkLX0UWE3ecWGg/exec"
@@ -53,13 +53,13 @@
       const [studentName, setStudentName] = useState('')
       const [studentClass, setStudentClass] = useState('')
       const [isSubmitted, setIsSubmitted] = useState(false)
-      const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
+      const [isSubmittingGrade, setIsSubmittingGrade] = useState(false)
 
       useEffect(() => {
         const fetchData = async () => {
           try {
             const response = await fetch(GOOGLE_SCRIPT_URL)
-            if (!response.ok) throw new Error('Network response was not ok')
+            if (!response.ok) throw new Error('Network error')
             const data = await response.json()
             setAllData(data)
             setIsLoading(false)
@@ -151,6 +151,29 @@
         const match = result.match(/ציון:\s*(\d+)/)
         if (match) setAiScore(parseInt(match[1], 10))
         setIsGrading(false)
+      }
+
+      const handleSubmitGrade = async () => {
+        if (!studentName.trim()) return
+        setIsSubmittingGrade(true)
+        try {
+          await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({
+              topic_id: selectedTopic,
+              studentName: studentName,
+              studentClass: studentClass,
+              score: aiScore,
+              essay: userEssay,
+              feedback: aiFeedback
+            })
+          })
+          setIsSubmitted(true)
+        } catch (e) {
+          console.error(e)
+        }
+        setIsSubmittingGrade(false)
       }
 
       if (isLoading) {
@@ -297,6 +320,15 @@
 
               {step?.step_type === 'ai-practice' && (
                 <div className="space-y-6 animate-fadeIn">
+                  <div className="bg-[#fdfbf7] p-5 rounded-2xl border border-amber-200 shadow-inner max-h-48 overflow-y-auto mb-4">
+                    <h3 className="font-bold text-amber-900 mb-2 flex items-center gap-2 text-sm">
+                      <FileText className="w-4 h-4" /> קטע המקור לתרגול
+                    </h3>
+                    <div className="whitespace-pre-line leading-relaxed text-slate-800 text-sm">
+                      {currentTexts.map(t => <span key={t.id}>{t.text} </span>)}
+                    </div>
+                  </div>
+
                   <div className="bg-indigo-50 p-6 rounded-3xl border-2 border-indigo-100">
                     <div className="flex items-center gap-2 mb-3 text-indigo-900 font-bold">
                       <MessageSquare className="w-5 h-5" />
@@ -318,6 +350,7 @@
                       {isGrading ? 'המורה בודק את התשובה...' : 'שלח לבדיקת בינה מלאכותית'}
                     </button>
                   </div>
+
                   {aiFeedback && (
                     <div className="bg-white p-6 rounded-3xl border-2 border-green-200 shadow-sm animate-fadeIn">
                       <div className="flex items-center gap-2 mb-3 text-green-800 font-bold">
@@ -325,6 +358,44 @@
                         <span>משוב המורה הווירטואלי</span>
                       </div>
                       <p className="whitespace-pre-line text-slate-700 text-lg leading-relaxed">{aiFeedback}</p>
+                      
+                      {aiScore !== null && aiScore >= 80 && !isSubmitted && (
+                        <div className="mt-6 bg-green-50 p-5 rounded-2xl border border-green-200 animate-fadeIn">
+                          <h4 className="font-bold text-green-900 flex items-center gap-2 mb-3">
+                            <Award className="w-6 h-6" /> ציון מעולה כל הכבוד! הכניסו פרטים לשמירה
+                          </h4>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                            <input 
+                              type="text" 
+                              placeholder="שם מלא" 
+                              value={studentName} 
+                              onChange={e => setStudentName(e.target.value)} 
+                              className="p-3 rounded-xl border border-green-300 focus:ring-2 focus:ring-green-500 outline-none w-full"
+                            />
+                            <input 
+                              type="text" 
+                              placeholder="כיתה" 
+                              value={studentClass} 
+                              onChange={e => setStudentClass(e.target.value)} 
+                              className="p-3 rounded-xl border border-green-300 focus:ring-2 focus:ring-green-500 outline-none w-full"
+                            />
+                          </div>
+                          <button 
+                            onClick={handleSubmitGrade} 
+                            disabled={!studentName.trim() || isSubmittingGrade} 
+                            className="w-full bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700 transition-colors disabled:opacity-50"
+                          >
+                            {isSubmittingGrade ? 'שומר נתונים...' : 'שלח ציון למורה'}
+                          </button>
+                        </div>
+                      )}
+
+                      {isSubmitted && (
+                        <div className="mt-6 bg-blue-50 p-5 rounded-2xl border border-blue-200 text-center animate-fadeIn text-blue-900 font-bold">
+                          <CheckCircle className="w-10 h-10 mx-auto text-blue-500 mb-2" />
+                          הציון והתשובה נשמרו בהצלחה במערכת המורה
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

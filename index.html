@@ -29,16 +29,38 @@
     import { 
       BookOpen, CheckCircle, XCircle, ArrowLeft, ArrowRight, 
       Award, FileText, Sparkles, Loader2, MessageSquare, 
-      LayoutDashboard, ChevronLeft
+      LayoutDashboard, ChevronLeft, Folder, Bookmark
     } from 'lucide-react'
 
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyYYG_UeQY4eaoDcXe7eaHdC71k9HPi-mgZF09s4Yl6MCsXIkqnJFkLX0UWE3ecWGg/exec"
 
+    const DASHBOARD_STRUCTURE = {
+      "השואה": {
+        subcategories: {
+          "מבוא ומושגי יסוד": [],
+          "הגטאות": [],
+          "הפתרון הסופי": []
+        }
+      },
+      "סוגיות": {
+        subcategories: {
+          "תהליך הדה קולוניזציה וגורל היהודים בארצות האסלאם": [
+            { id: "iraq_jews", title: "שאלה 1: יהודי עיראק" }
+          ],
+          "העליות בשנות ה50 וה60": [],
+          "מלחמת יום הכיפורים": []
+        }
+      }
+    }
+
     const BagrutLomda = () => {
       const [allData, setAllData] = useState({ questions: [], texts: {} })
       const [isLoading, setIsLoading] = useState(true)
-      const [selectedTopic, setSelectedTopic] = useState(null)
       const [fetchError, setFetchError] = useState(false)
+      
+      const [selectedCategory, setSelectedCategory] = useState(null)
+      const [selectedSubcategory, setSelectedSubcategory] = useState(null)
+      const [selectedTopic, setSelectedTopic] = useState(null)
       
       const [currentStep, setCurrentStep] = useState(0)
       const [selectedAnswers, setSelectedAnswers] = useState({})
@@ -72,21 +94,13 @@
         fetchData()
       }, [])
 
-      const topics = useMemo(() => {
-        const uniqueTopics = {}
-        allData.questions.forEach(q => {
-          if (!uniqueTopics[q.topic_id]) {
-            uniqueTopics[q.topic_id] = q.title.split(':')[0]
-          }
-        })
-        return Object.entries(uniqueTopics).map(([id, name]) => ({ id, name }))
-      }, [allData])
-
       const currentSteps = useMemo(() => {
+        if (!selectedTopic) return []
         return allData.questions.filter(q => q.topic_id === selectedTopic)
       }, [allData, selectedTopic])
 
       const currentTexts = useMemo(() => {
+        if (!selectedTopic) return []
         return allData.texts[selectedTopic] || []
       }, [allData, selectedTopic])
 
@@ -214,7 +228,7 @@
         )
       }
 
-      if (!selectedTopic) {
+      if (!selectedCategory) {
         return (
           <div className="min-h-screen p-4 md:p-8 bg-slate-50 animate-fadeIn">
             <div className="max-w-4xl mx-auto">
@@ -223,22 +237,97 @@
                   <LayoutDashboard className="w-8 h-8 text-blue-600" />
                 </div>
                 <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-2">דשבורד הכנה לבגרות</h1>
-                <p className="text-slate-600">בחרו נושא מתוך הרשימה והתחילו בתרגול האישי</p>
+                <p className="text-slate-600">בחרו קטגוריה כדי להתחיל</p>
               </header>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {topics.map(topic => (
+                {Object.keys(DASHBOARD_STRUCTURE).map(cat => (
                   <button 
-                    key={topic.id}
-                    onClick={() => setSelectedTopic(topic.id)}
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
                     className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-blue-500 hover:shadow-md transition-all text-right group flex items-center justify-between"
                   >
-                    <div>
-                      <h3 className="text-xl font-bold text-slate-800 group-hover:text-blue-600 transition-colors">{topic.name}</h3>
-                      <p className="text-slate-500 text-sm mt-1">ניתוח מקורות ותרגול כתיבה</p>
+                    <div className="flex items-center gap-4">
+                      <div className="bg-blue-100 p-3 rounded-xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                        <BookOpen className="w-6 h-6" />
+                      </div>
+                      <h3 className="text-2xl font-bold text-slate-800 group-hover:text-blue-600 transition-colors">{cat}</h3>
                     </div>
                     <ChevronLeft className="text-slate-300 group-hover:text-blue-500 transition-transform group-hover:-translate-x-1" />
                   </button>
                 ))}
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      if (!selectedSubcategory) {
+        return (
+          <div className="min-h-screen p-4 md:p-8 bg-slate-50 animate-fadeIn">
+            <div className="max-w-4xl mx-auto">
+              <button onClick={() => setSelectedCategory(null)} className="text-slate-500 hover:text-blue-600 flex items-center gap-2 mb-6 font-bold transition-colors">
+                <ArrowRight className="w-5 h-5" /> חזרה לקטגוריות
+              </button>
+              
+              <h2 className="text-2xl font-bold text-slate-800 mb-6">{selectedCategory} רשימת נושאים</h2>
+              
+              <div className="grid grid-cols-1 gap-4">
+                {Object.keys(DASHBOARD_STRUCTURE[selectedCategory].subcategories).map(sub => (
+                  <button 
+                    key={sub}
+                    onClick={() => setSelectedSubcategory(sub)}
+                    className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 hover:border-blue-500 transition-all text-right group flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="bg-slate-100 p-2 rounded-lg text-slate-500 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">
+                        <Folder className="w-5 h-5" />
+                      </div>
+                      <span className="text-lg font-bold text-slate-700 group-hover:text-blue-700 transition-colors">{sub}</span>
+                    </div>
+                    <ChevronLeft className="text-slate-300 group-hover:text-blue-500 transition-transform group-hover:-translate-x-1" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      if (!selectedTopic) {
+        const questionsList = DASHBOARD_STRUCTURE[selectedCategory].subcategories[selectedSubcategory]
+        return (
+          <div className="min-h-screen p-4 md:p-8 bg-slate-50 animate-fadeIn">
+            <div className="max-w-4xl mx-auto">
+              <button onClick={() => setSelectedSubcategory(null)} className="text-slate-500 hover:text-blue-600 flex items-center gap-2 mb-6 font-bold transition-colors">
+                <ArrowRight className="w-5 h-5" /> חזרה לרשימת הנושאים
+              </button>
+              
+              <h2 className="text-2xl font-bold text-slate-800 mb-2">{selectedSubcategory}</h2>
+              <p className="text-slate-600 mb-6 font-medium">בחרו שאלת תרגול מתוך הרשימה למטה</p>
+              
+              <div className="grid grid-cols-1 gap-4">
+                {questionsList.length === 0 ? (
+                  <div className="bg-slate-100 p-8 rounded-2xl text-center border-2 border-dashed border-slate-300">
+                    <p className="text-slate-500 font-bold text-lg">אין עדיין שאלות בחלק זה</p>
+                    <p className="text-slate-400 text-sm mt-1">המורה יוסיף שאלות בקרוב</p>
+                  </div>
+                ) : (
+                  questionsList.map(q => (
+                    <button 
+                      key={q.id}
+                      onClick={() => setSelectedTopic(q.id)}
+                      className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 hover:border-indigo-500 transition-all text-right group flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="bg-indigo-50 p-2 rounded-lg text-indigo-500 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                          <Bookmark className="w-5 h-5" />
+                        </div>
+                        <span className="text-lg font-bold text-slate-700 group-hover:text-indigo-700 transition-colors">{q.title}</span>
+                      </div>
+                      <ChevronLeft className="text-slate-300 group-hover:text-indigo-500 transition-transform group-hover:-translate-x-1" />
+                    </button>
+                  ))
+                )}
               </div>
             </div>
           </div>

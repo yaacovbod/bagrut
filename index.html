@@ -156,26 +156,32 @@ const response = await callGeminiAPI(prompt, `אתה בודק בחינות בג�
         setIsGeneratingPDF(true);
         setPdfError(false);
 
-        try {
-          await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
-          await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+    try {
+  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js')
+  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js')
 
-          const element = document.getElementById('pdf-hidden-content');
-          
-          const canvas = await window.html2canvas(element, {
-            scale: 2,
-            useCORS: true,
-            backgroundColor: '#ffffff'
-          });
+  const element = document.getElementById('pdf-hidden-content')
+  
+  const canvas = await window.html2canvas(element, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: '#ffffff',
+    onclone: (clonedDocument) => {
+      const clonedElement = clonedDocument.getElementById('pdf-hidden-content')
+      clonedElement.style.position = 'absolute'
+      clonedElement.style.top = '0'
+      clonedElement.style.left = '0'
+    }
+  })
 
-          const imgData = canvas.toDataURL('image/jpeg', 1.0);
-          const { jsPDF } = window.jspdf;
-          
-          const pdf = new jsPDF('p', 'mm', 'a4');
-          const pdfWidth = pdf.internal.pageSize.getWidth();
-          const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+  const imgData = canvas.toDataURL('image/jpeg', 1.0)
+  const { jsPDF } = window.jspdf
+  
+  const pdf = new jsPDF('p', 'mm', 'a4')
+  const pdfWidth = pdf.internal.pageSize.getWidth()
+  const pdfHeight = (canvas.height * pdfWidth) / canvas.width
 
-          pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+  pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight)
           
           pdf.save(`הגשת_היסטוריה_${studentName.replace(/\s+/g, '_')}.pdf`);
           

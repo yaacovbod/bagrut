@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>הכנה לבגרות בהיסטוריה</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.2.0",
+        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+        "lucide-react": "https://esm.sh/lucide-react@0.292.0"
+      }
+    }
+  </script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="bg-slate-50">
+  <div id="root"></div>
+  <script type="text/babel" data-type="module">
+    import React, { useState } from 'react';
+    import { createRoot } from 'react-dom/client';
+    import { BookOpen, CheckCircle, XCircle, ArrowLeft, ArrowRight, Award, FileText, Sparkles, Loader2, MessageSquare, Download } from 'lucide-react';
+
+    const BagrutLomda = () => {
+      const [currentStep, setCurrentStep] = useState(0);
+      
+      const [selectedAnswers, setSelectedAnswers] = useState({});
+      const [isCorrectMap, setIsCorrectMap] = useState({});
+      const [showExplanationMap, setShowExplanationMap] = useState({});
+      const [wrongAnswersMap, setWrongAnswersMap] = useState({});
+      const [showErrorMsgMap, setShowErrorMsgMap] = useState({});
+
+      const selectedAnswer = selectedAnswers[currentStep];
+      const isCorrect = isCorrectMap[currentStep];
+      const showExplanation = showExplanationMap[currentStep] || false;
+      const wrongAnswers = wrongAnswersMap[currentStep] || [];
+      const showErrorMsg = showErrorMsgMap[currentStep] || false;
+
+      const [userEssay, setUserEssay] = useState('');
+      const [isGrading, setIsGrading] = useState(false);
+      const [aiFeedback, setAiFeedback] = useState('');
+      const [aiScore, setAiScore] = useState(null);
+      
+      const [showSubmitForm, setShowSubmitForm] = useState(false);
+      const [studentName, setStudentName] = useState('');
+      const [studentClass, setStudentClass] = useState('');
+      const [isSubmitted, setIsSubmitted] = useState(false);
+      const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+      const [pdfError, setPdfError] = useState(false);
+
+      const textSegments = [
+        { id: 0, text: "סודי\nהוד מעלתו סגן ראש הממשלה ושר הפנים בפועל,\nבהתייחסות לשיחה שבעל פה אני מקווה שהתזכיר הזה יסייע לשפוך אור על המצב הנוכחי שבו נתונה הקהילה היהודית בעיראק, ועל הסיבות להרגשת החרדה האופפת אותה. " },
+        { id: 1, text: "אנו תקווה שחכמתה ותבונתה של הממשלה הנכבדה יעמדו לה לחיסול סיבות ההרגשה הזאת, ולהחזרת העניינים למהלכם הטבעי.\n" },
+        { id: 2, text: "הסיבות העיקריות נעוצות, לאמיתו של דבר, בהגבלות הרבות אשר הוטלו בזו אחר זו על העיראקים היהודים במשך 18 החודשים האחרונים דבר שהפך את חייהם לקשים ביותר ודחף את רובם הגדול להביט בייאוש אל העתיד.\n" },
+        { id: 3, text: "הקהילה היהודית בעיראק, אשר נודעה במשך 2,400 שנות חייה בעיראק בדבקות בארץ ובנאמנות ללא רבב, הייתה בטוחה כי פרוץ המלחמה [מלחמת העצמאות] לא ישפיע על קיומה או יפגום דבר מזכויותיה וחירותה המובטחות בחוקה כל עוד היא ממלאת את חובתה תוך דבקות בחוקים ונאמנות לארץ.\n" },
+        { id: 4, text: "אבל התקוות האלה, לצערנו, נכזבו כולן. " },
+        { id: 5, text: "בגלל המלחמה הזאת נפגעה הקהילה ונקלעה למצב שאין לקנא בו, כשכל חטאה הוא היותה קהילה יהודית. " },
+        { id: 6, text: "ואף על פי כן רבים מבין הנבונים המשיכו להאמין ולצפות שבסופו של דבר העניינים ישובו למהלכם התקין. " },
+        { id: 7, text: "אולם גל נוסף של אכזבה הציף את כולם כאשר הסתבר כי הפסקת הקרבות לא שמה קץ [סוף] לסבלותיה של הקהילה. " },
+        { id: 8, text: "אדרבה המצור סביבה נמשך עד כי רוב בניה, בגלל המצוקה שממנה [הם] סובלים במחייתם ובענייניהם האחרים, חדלו לתת אוזן לעצת הנבונים ובעלי הדעה בקהילה ולהבטחה כי הישועה קרובה.\n" },
+        { id: 9, text: "[...] מכל מקום אנו סבורים כי פתרון המשבר הזה עודנו, כפי שהיה, תלוי בתבונתה של הממשלה העיראקית הנכבדה ובאופן שבו [היא] תכלכל את מעשיה. " },
+        { id: 10, text: "הסרת ההגבלות שהוטלו על חירותם של העיראקים היהודים, הנהגת שוויון בינם לבין יתר בני הארץ והענשת העבריינים שביניהם בהתאם לעקרונות הצדק ועל פי החוקים הנהוגים, " },
+        { id: 11, text: "כל אלה עשויים להחזיר את העניינים למהלכם התקין, ולהשיב את הביטחון והשלווה אל נפשות מאה ועשרים אלף עיראקים יהודים, אשר הצטיינו מאז ומתמיד באהבת הסדר, משמעת לחוק, שקידה בעבודה, נאמנות למולדתם העיראקית ודבקות בכתר ההאשמי האהוב.\n" },
+        { id: 12, text: "מיטב ההערכה להוד מעלתכם.\nראש הקהילה היהודית בבגדד" }
+      ];
+
+      const callGeminiAPI = async (prompt, systemInstruction) => {
+        // הכנס את המפתח החדש שלך בתוך המרכאות בשורה הבאה
+        const apiKey = "AIzaSyCuF86NuNu_NFeWaapaWUaZ7S3CenQoOhU"; 
+        
+const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey;
+        
+        const payload = {
+          contents: [{ parts: [{ text: prompt }] }],
+          systemInstruction: { parts: [{ text: systemInstruction }] }
+        };
+
+        const delays = [1000, 2000, 4000, 8000, 16000];
+        let lastError = null;
+
+        for (let i = 0; i < 5; i++) {
+          try {
+            const response = await fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+              throw new Error(`HTTP error status ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data.candidates?.[0]?.content?.parts?.[0]?.text || "לא התקבלה תגובה משרת הבינה המלאכותית נסה שוב מאוחר יותר";
+          } catch (error) {
+            lastError = error;
+            if (i < 4) await new Promise(res => setTimeout(res, delays[i]));
+          }
+        }
+        console.error("Gemini API Error after retries", lastError);
+        return "אירעה שגיאה בתקשורת עם השרת אנא בדוק את הגדרות המפתח ונסה שוב";
+      };
+
+      const handleGradeEssay = async () => {
+        if (!userEssay.trim()) return;
+        setIsGrading(true);
+        setAiScore(null);
+        setIsSubmitted(false);
+        setShowSubmitForm(false);
+        setPdfError(false);
+        
+        const prompt = `התלמיד התבקש לענות על השאלה הבאה בבגרות בהיסטוריה:
+        "הסבירו שני גורמים (אחד לפחות מקטע המקור על יהודי עיראק ב-1949) שהשפיעו על מצב היהודים בארצות האסלאם משנות ה-40. והציגו שתיים מדרכי התגובה של היהודים (אחת מקטע המקור)."
+        
+        התשובה האידיאלית צריכה לכלול:
+        גורמים: 1. מלחמת העצמאות והקמת מדינת ישראל (מופיע בטקסט). 2. תהליך הדקולוניזציה או התעוררות הלאומיות הערבית או הקצנה דתית.
+        תגובות: 1. ייאוש ואובדן אמון בהנהגה הוותיקה (מופיע בטקסט). 2. התארגנות מחתרתית ציונות ועלייה לארץ ישראל.
+        
+        הנה תשובת התלמיד:
+        "${userEssay}"
+        
+        קרא את התשובה. תן לה ציון מספרי מ-0 עד 100 על סמך הנוכחות של 4 הרכיבים הללו.
+        חובה להתחיל את התשובה שלך בדיוק במילים "ציון: X/100" כאשר X הוא הציון המספרי.
+        לאחר מכן פתח שורה חדשה וכתוב פסקת משוב קצרה. ציין מה היה טוב בתשובה ומה חסר בה. תהיה מורה חיובי ומעודד בעברית ללא שימוש בנקודה פסיק וללא מקפים ארוכים.`;
+
+        const response = await callGeminiAPI(prompt, "אתה בודק בחינות בגרות בהיסטוריה. אתה מקצועי והוגן ותמיד נותן משוב בונה ומעודד בעברית.");
+        
+        setAiFeedback(response);
+        
+        const scoreMatch = response.match(/ציון:\s*(\d+)/);
+        if (scoreMatch && scoreMatch[1]) {
+          setAiScore(parseInt(scoreMatch[1], 10));
+        }
+        
+        setIsGrading(false);
+      };
+
+      const loadScript = (src) => new Promise((resolve, reject) => {
+        if (document.querySelector(`script[src="${src}"]`)) return resolve();
+        const script = document.createElement('script');
+        script.src = src;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
+
+      const handleDownloadFile = async () => {
+        if (!studentName.trim() || !studentClass.trim()) return;
+        
+        setIsGeneratingPDF(true);
+        setPdfError(false);
+
+        try {
+          await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+          await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+
+          const element = document.getElementById('pdf-hidden-content');
+          
+          const canvas = await window.html2canvas(element, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#ffffff'
+          });
+
+          const imgData = canvas.toDataURL('image/jpeg', 1.0);
+          const { jsPDF } = window.jspdf;
+          
+          const pdf = new jsPDF('p', 'mm', 'a4');
+          const pdfWidth = pdf.internal.pageSize.getWidth();
+          const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+          pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+          
+          pdf.save(`הגשת_היסטוריה_${studentName.replace(/\s+/g, '_')}.pdf`);
+          
+          setIsSubmitted(true);
+        } catch (error) {
+          console.error("PDF generation error", error);
+          setPdfError(true);
+        } finally {
+          setIsGeneratingPDF(false);
+        }
+      };
+
+      const steps = [
+        {
+          type: 'intro',
+          title: 'שלב 1: קריאת קטע המקור',
+          content: 'לפני שניגש לשאלות נקרא את הטקסט בעיון. במשימות הבאות תתבקשו לאתר את התשובות בתוך הטקסט עצמו וללחוץ עליהן במקום לנחש מתוך רשימה.'
+        },
+        {
+          type: 'text-selection',
+          title: 'חלק א: גורמים למצב היהודים',
+          subtitle: 'איתור הגורם בטקסט',
+          question: 'לחצו על המשפט בטקסט שמסביר מהו הגורם המרכזי שהרע את מצבם של יהודי עיראק והוביל להטלת הגבלות עליהם.',
+          correctIndex: 5,
+          explanation: 'הטקסט מציין במפורש: "בגלל המלחמה הזאת [מלחמת העצמאות] נפגעה הקהילה ונקלעה למצב שאין לקנא בו". מלחמת העצמאות של מדינת ישראל הפכה את יהודי ארצות ערב למוקד של עוינות וחשדנות מצד השלטונות המקומיים.'
+        },
+        {
+          type: 'question',
+          title: 'חלק א: גורמים למצב היהודים',
+          subtitle: 'גורם נוסף מתוך ידע קודם',
+          question: 'הגורם מהטקסט הוא מלחמת העצמאות. איזה גורם היסטורי נוסף שלא מופיע בטקסט השפיע לרעה על מצב היהודים בארצות האסלאם בתקופה זו?',
+          options: [
+            'המהפכה התעשייתית בארצות ערב שדחקה את היהודים ממעגל העבודה.',
+            'עליית המשטר הנאצי בגרמניה בלבד ללא קשר למדינות ערב.',
+            'תהליך הדקולוניזציה והתפתחות התנועות הלאומיות הערביות.',
+            'התחזקות האימפריה העות\'מאנית וגזרותיה כלפי מיעוטים.'
+          ],
+          correctIndex: 2,
+          explanation: 'תהליך הדקולוניזציה שחרר מדינות ערביות משלטון זר והביא לצמיחת לאומיות ערבית מקומית. הלאומיות הזו ראתה ביהודים נטע זר ולעתים אף זיהתה אותם עם השלטון הקולוניאלי הקודם כמו הצרפתים בצפון אפריקה.'
+        },
+        {
+          type: 'text-selection',
+          title: 'חלק ב: דרכי התגובה של היהודים',
+          subtitle: 'איתור התגובות בטקסט',
+          question: 'בקטע המקור חבויות למעשה שתי דרכי התמודדות ותגובה של הקהילה היהודית למצבם. סמנו את שתיהן בתוך הטקסט.',
+          correctIndex: [8, 10],
+          requireMultiple: true,
+          explanation: 'בטקסט מוצגות שתי תגובות מקבילות. מצד אחד ההנהגה המסורתית מגיבה בדרך דיפלומטית ופונה לשלטונות בדרישה להסרת ההגבלות כפי שרואים בפסקה אחרונה. מצד שני ההמון מגיב בייאוש ואובדן אמון באותה הנהגה לאחר שחדלו לתת אוזן לעצת הנבונים.'
+        },
+        {
+          type: 'question',
+          title: 'חלק ב: דרכי התגובה של היהודים',
+          subtitle: 'דרך תגובה נוספת מתוך ידע קודם',
+          question: 'איזו דרך תגובה נוספת שאינה מפורשת בטקסט אפיינה את הצעירים היהודים בארצות האסלאם באותן שנים?',
+          options: [
+            'הקמת מפלגות פוליטיות יהודיות בתוך הפרלמנט הערבי.',
+            'הצטרפות לתנועות מחתרת ציוניות והתארגנות לעלייה חשאית.',
+            'התבוללות המונית והמרת דת לאסלאם כדי להשתלב בחברה.',
+            'הגירה המונית של כל הקהילה לארצות הברית בלבד.'
+          ],
+          correctIndex: 1,
+          explanation: 'רבים מהצעירים שאיבדו אמון בהנהגה המסורתית כפי שראינו בטקסט בחרו באפיק אקטיבי של הצטרפות לתנועות נוער ציוניות ולמחתרת הציונית שהתארגנה בחשאי וסייעה לעלייה לארץ ישראל.'
+        },
+        {
+          type: 'ai-practice',
+          title: 'חלק ג: תרגול כתיבת התשובה המלאה',
+          content: 'כעת הגיע הזמן לתרגל. קראו שוב את קטע המקור ונסחו תשובה מלאה לשאלת הבגרות. הבינה המלאכותית תבדוק את התשובה שלכם ותעניק משוב אישי.',
+          questionText: 'הסבירו שני גורמים המשפיעים על מצב היהודים בארצות האסלאם משנות הארבעים. הציגו שתיים מדרכי התגובה של היהודים על מצבם דרך אחת מהטקסט ודרך נוספת.'
+        }
+      ];
+
+      const handleAnswerSelect = (index) => {
+        if (showExplanation) return;
+        
+        const step = steps[currentStep];
+
+        if (step.requireMultiple) {
+          setShowErrorMsgMap(prev => ({ ...prev, [currentStep]: false })); 
+          
+          let currentSelected = Array.isArray(selectedAnswer) ? selectedAnswer : [];
+          let newSelected;
+          
+          if (currentSelected.includes(index)) {
+            newSelected = currentSelected.filter(i => i !== index);
+          } else {
+            newSelected = [...currentSelected, index];
+          }
+          
+          setSelectedAnswers(prev => ({ ...prev, [currentStep]: newSelected }));
+
+          if (newSelected.length === step.correctIndex.length) {
+            const allCorrect = newSelected.every(val => step.correctIndex.includes(val));
+            if (allCorrect) {
+              setIsCorrectMap(prev => ({ ...prev, [currentStep]: true }));
+              setShowExplanationMap(prev => ({ ...prev, [currentStep]: true }));
+            } else {
+              setShowErrorMsgMap(prev => ({ ...prev, [currentStep]: true })); 
+            }
+          }
+          return;
+        }
+
+        if (wrongAnswers.includes(index)) return;
+
+        const isCorrectChoice = Array.isArray(step.correctIndex) 
+          ? step.correctIndex.includes(index)
+          : index === step.correctIndex;
+
+        setSelectedAnswers(prev => ({ ...prev, [currentStep]: index }));
+
+        if (isCorrectChoice) {
+          setIsCorrectMap(prev => ({ ...prev, [currentStep]: true }));
+          setShowExplanationMap(prev => ({ ...prev, [currentStep]: true }));
+        } else {
+          setWrongAnswersMap(prev => ({ 
+            ...prev, 
+            [currentStep]: [...(prev[currentStep] || []), index] 
+          }));
+        }
+      };
+
+      const nextStep = () => {
+        setCurrentStep(prev => prev + 1);
+      };
+
+      const prevStep = () => {
+        setCurrentStep(prev => prev - 1);
+      };
+
+      const renderContent = () => {
+        const step = steps[currentStep];
+
+        if (step.type === 'intro') {
+          return (
+            <div className="space-y-4 md:space-y-6">
+              <div className="bg-blue-50 text-blue-900 p-4 rounded-xl text-base md:text-lg leading-relaxed font-medium">
+                {step.content}
+              </div>
+
+              <div className="bg-[#fdfbf7] p-4 md:p-6 rounded-xl border border-amber-200 shadow-inner overflow-y-auto max-h-96">
+                <h3 className="font-bold text-amber-900 mb-3 md:mb-4 flex items-center gap-2 text-sm md:text-base">
+                  <FileText className="w-4 h-4 md:w-5 md:h-5" />
+                  תזכיר ראש הקהילה היהודית בבגדד 1949
+                </h3>
+                <div className="whitespace-pre-line text-gray-800 leading-loose text-base md:text-lg">
+                  {textSegments.map(segment => (
+                    <span key={segment.id}>{segment.text}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        }
+
+        if (step.type === 'text-selection') {
+          return (
+            <div className="space-y-4 md:space-y-6 animate-fadeIn">
+              <div className="text-center mb-4 md:mb-6">
+                <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs md:text-sm font-semibold mb-2 md:mb-3 inline-block">
+                  {step.subtitle}
+                </span>
+                <h2 className="text-xl md:text-2xl font-bold text-gray-800">{step.question}</h2>
+                <p className="text-blue-600 mt-2 text-sm md:text-base font-medium">
+                  {step.requireMultiple 
+                    ? `לחצו על המשפטים שמהווים את התשובה בחרו ${step.correctIndex.length} משפטים`
+                    : 'לחצו על המשפט שמהווה את התשובה הנכונה'}
+                </p>
+              </div>
+
+              <div className="bg-[#fdfbf7] p-4 md:p-6 rounded-xl border border-amber-200 shadow-inner overflow-y-auto max-h-96">
+                <h3 className="font-bold text-amber-900 mb-3 md:mb-4 flex items-center gap-2 text-sm md:text-base">
+                  <FileText className="w-4 h-4 md:w-5 md:h-5" />
+                  תזכיר ראש הקהילה היהודית בבגדד 1949
+                </h3>
+                <div className="whitespace-pre-line text-gray-800 leading-loose text-base md:text-lg">
+                  {textSegments.map((segment) => {
+                    let spanClass = "transition-colors cursor-pointer rounded-sm px-0.5 md:px-0 ";
+                    const isSelected = Array.isArray(selectedAnswer) ? selectedAnswer.includes(segment.id) : selectedAnswer === segment.id;
+                    
+                    if (showExplanation) {
+                       const isCorrectSegment = Array.isArray(step.correctIndex) 
+                         ? step.correctIndex.includes(segment.id) 
+                         : segment.id === step.correctIndex;
+
+                       if (isCorrectSegment) {
+                          spanClass += "bg-green-200 font-bold text-green-900";
+                       } else {
+                          spanClass += "text-gray-400";
+                       }
+                    } else {
+                       if (step.requireMultiple) {
+                          if (isSelected) {
+                             if (showErrorMsg) {
+                                if (step.correctIndex.includes(segment.id)) {
+                                   spanClass += "bg-green-200 font-bold text-green-900"; 
+                                } else {
+                                   spanClass += "bg-red-200 text-red-900 line-through decoration-red-500 decoration-2"; 
+                                }
+                             } else {
+                                spanClass += "bg-blue-200 text-blue-900"; 
+                             }
+                          } else {
+                             spanClass += "hover:bg-amber-200";
+                          }
+                       } else {
+                          if (wrongAnswers.includes(segment.id)) {
+                             spanClass += "bg-red-200 text-red-900 line-through decoration-red-500 decoration-2";
+                          } else {
+                             spanClass += "hover:bg-amber-200";
+                          }
+                       }
+                    }
+
+                    return (
+                      <span 
+                        key={segment.id} 
+                        className={spanClass}
+                        onClick={() => handleAnswerSelect(segment.id)}
+                      >
+                        {segment.text}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {step.requireMultiple && showErrorMsg && !showExplanation && (
+                <div className={`mt-4 md:mt-6 p-4 md:p-5 rounded-xl flex gap-3 items-start animate-fadeIn ${
+                  (Array.isArray(selectedAnswer) && selectedAnswer.filter(id => step.correctIndex.includes(id)).length > 0)
+                    ? 'bg-orange-100 text-orange-900'
+                    : 'bg-red-100 text-red-900'
+                }`}>
+                  <div className="shrink-0 mt-1">
+                    <XCircle className={`w-5 h-5 md:w-6 md:h-6 ${
+                      (Array.isArray(selectedAnswer) && selectedAnswer.filter(id => step.correctIndex.includes(id)).length > 0)
+                        ? 'text-orange-600'
+                        : 'text-red-600'
+                    }`} />
+                  </div>
+                  <div>
+                     <p className="font-bold text-base md:text-lg mb-1">
+                       {(Array.isArray(selectedAnswer) && selectedAnswer.filter(id => step.correctIndex.includes(id)).length > 0)
+                         ? 'חצי דרך לשם'
+                         : 'לא מדויק נסו שוב'}
+                     </p>
+                     <p className="text-sm md:text-base leading-relaxed font-medium">
+                       {(Array.isArray(selectedAnswer) && selectedAnswer.filter(id => step.correctIndex.includes(id)).length > 0)
+                         ? 'משפט אחד שסימנתם נכון והשארנו אותו בירוק. לחצו על המשפט האדום כדי לבטל אותו ונסו לחפש את המשפט המשלים.'
+                         : 'שני המשפטים שסימנתם אינם נכונים. לחצו עליהם כדי לבטל את הסימון ונסו שוב.'}
+                     </p>
+                  </div>
+                </div>
+              )}
+
+              {!step.requireMultiple && wrongAnswers.length > 0 && !showExplanation && (
+                <div className="mt-4 md:mt-6 p-4 md:p-5 rounded-xl flex gap-3 items-start animate-fadeIn bg-red-100 text-red-900">
+                  <div className="shrink-0 mt-1">
+                    <XCircle className="w-5 h-5 md:w-6 md:h-6 text-red-600" />
+                  </div>
+                  <div>
+                     <p className="font-bold text-base md:text-lg mb-1">לא מדויק כדאי לנסות שוב</p>
+                     <p className="text-sm md:text-base leading-relaxed font-medium">המשפט שסימנתם אינו התשובה הנכונה. המשיכו לחפש בטקסט.</p>
+                  </div>
+                </div>
+              )}
+
+              {showExplanation && (
+                <div className="mt-4 md:mt-6 p-4 md:p-5 rounded-xl flex gap-3 items-start animate-fadeIn bg-green-100 text-green-900">
+                  <div className="shrink-0 mt-1">
+                    <CheckCircle className="w-5 h-5 md:w-6 md:h-6 text-green-600" />
+                  </div>
+                  <div>
+                     <p className="font-bold text-base md:text-lg mb-1">נכון מאוד</p>
+                     <p className="text-sm md:text-base leading-relaxed font-medium">{step.explanation}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        if (step.type === 'question') {
+          return (
+            <div className="space-y-4 md:space-y-6 animate-fadeIn">
+              <div className="text-center mb-6 md:mb-8">
+                <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs md:text-sm font-semibold mb-2 md:mb-3 inline-block">
+                  {step.subtitle}
+                </span>
+                <h2 className="text-xl md:text-2xl font-bold text-gray-800">{step.question}</h2>
+              </div>
+
+              <div className="grid gap-3 md:gap-4">
+                {step.options.map((option, index) => {
+                  let btnClass = "w-full text-right p-3 md:p-4 rounded-xl border-2 transition-all duration-300 relative overflow-hidden ";
+                  
+                  if (showExplanation && index === step.correctIndex) {
+                    btnClass += "bg-green-50 border-green-500 text-green-900";
+                  } else if (wrongAnswers.includes(index)) {
+                    btnClass += "bg-red-50 border-red-500 text-red-900 opacity-60 cursor-not-allowed";
+                  } else {
+                    btnClass += "bg-white border-gray-200 hover:border-blue-300 hover:bg-blue-50 text-gray-700";
+                  }
+
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => handleAnswerSelect(index)}
+                      disabled={showExplanation || wrongAnswers.includes(index)}
+                      className={btnClass}
+                    >
+                      <div className="flex items-center gap-2 md:gap-3">
+                        <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full border-2 flex items-center justify-center shrink-0
+                          ${showExplanation && index === step.correctIndex ? 'border-green-500' : 
+                            wrongAnswers.includes(index) ? 'border-red-500' : 'border-gray-300'}`}
+                        >
+                          {showExplanation && index === step.correctIndex && <CheckCircle className="w-3 h-3 md:w-4 md:h-4 text-green-500" />}
+                          {wrongAnswers.includes(index) && <XCircle className="w-3 h-3 md:w-4 md:h-4 text-red-500" />}
+                        </div>
+                        <span className="text-base md:text-lg leading-tight">{option}</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {wrongAnswers.length > 0 && !showExplanation && (
+                <div className="mt-4 md:mt-6 p-4 md:p-5 rounded-xl flex gap-3 items-start animate-fadeIn bg-red-100 text-red-900">
+                  <div className="shrink-0 mt-1">
+                    <XCircle className="w-5 h-5 md:w-6 md:h-6 text-red-600" />
+                  </div>
+                  <div>
+                     <p className="font-bold text-base md:text-lg mb-1">לא מדויק כדאי לנסות שוב</p>
+                     <p className="text-sm md:text-base leading-relaxed font-medium">האפשרות שסימנתם אינה נכונה. נסו לבחור אפשרות אחרת.</p>
+                  </div>
+                </div>
+              )}
+
+              {showExplanation && (
+                <div className="mt-4 md:mt-6 p-4 md:p-5 rounded-xl flex gap-3 items-start animate-fadeIn bg-green-100 text-green-900">
+                  <div className="shrink-0 mt-1">
+                    <CheckCircle className="w-5 h-5 md:w-6 md:h-6 text-green-600" />
+                  </div>
+                  <div>
+                     <p className="font-bold text-base md:text-lg mb-1">נכון מאוד</p>
+                     <p className="text-sm md:text-base leading-relaxed font-medium">{step.explanation}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        if (step.type === 'ai-practice') {
+          return (
+            <div className="space-y-4 md:space-y-6 animate-fadeIn">
+              <div className="text-center mb-4 md:mb-6">
+                <span className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-xs md:text-sm font-semibold mb-2 md:mb-3 inline-block flex items-center justify-center gap-1 mx-auto w-fit">
+                  <Sparkles className="w-3 h-3 md:w-4 md:h-4" /> בינה מלאכותית
+                </span>
+                <h2 className="text-xl md:text-2xl font-bold text-gray-800">{step.title}</h2>
+                <p className="text-sm md:text-base text-gray-600 mt-2">{step.content}</p>
+              </div>
+
+              <div className="bg-[#fdfbf7] p-4 md:p-5 rounded-xl border border-amber-200 shadow-inner overflow-y-auto max-h-48 mb-4">
+                <h3 className="font-bold text-amber-900 mb-2 flex items-center gap-2 text-sm">
+                  <FileText className="w-4 h-4" />
+                  תזכיר ראש הקהילה 1949
+                </h3>
+                <div className="whitespace-pre-line text-gray-700 leading-relaxed text-sm">
+                  {textSegments.map(segment => (
+                    <span key={segment.id}>{segment.text}</span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-white p-4 md:p-5 rounded-xl border-2 border-indigo-200 mb-4 md:mb-6 shadow-sm">
+                <h3 className="font-bold text-indigo-900 mb-2 text-base md:text-lg">שאלת הבגרות</h3>
+                <p className="text-gray-800 text-base md:text-lg font-medium leading-relaxed">{step.questionText}</p>
+              </div>
+
+              <div className="bg-indigo-50 p-4 md:p-6 rounded-2xl border border-indigo-100">
+                <label className="block text-indigo-900 font-bold mb-3 flex items-center gap-2 text-sm md:text-base">
+                  <MessageSquare className="w-4 h-4 md:w-5 md:h-5" />
+                  התשובה שלך
+                </label>
+                <textarea
+                  value={userEssay}
+                  onChange={(e) => setUserEssay(e.target.value)}
+                  placeholder="כתבו כאן את התשובה המלאה"
+                  className="w-full h-32 md:h-40 p-3 md:p-4 rounded-xl border border-indigo-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none resize-none transition-all shadow-inner text-gray-700 bg-white text-base"
+                />
+                
+                <button
+                  onClick={handleGradeEssay}
+                  disabled={isGrading || !userEssay.trim()}
+                  className={`mt-4 w-full flex items-center justify-center gap-2 py-2.5 md:py-3 rounded-xl font-bold text-base md:text-lg transition-all shadow-md
+                    ${isGrading || !userEssay.trim()
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white'}`}
+                >
+                  {isGrading ? <Loader2 className="w-5 h-5 md:w-6 md:h-6 animate-spin" /> : <Sparkles className="w-5 h-5 md:w-6 md:h-6" />}
+                  {isGrading ? 'בודק את התשובה' : 'הגש לבדיקה'}
+                </button>
+              </div>
+
+              {aiFeedback && (
+                <div className="bg-white p-4 md:p-6 rounded-2xl shadow-sm border-2 border-green-200 animate-fadeIn relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-1.5 md:w-2 h-full bg-green-400"></div>
+                  <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-3 md:mb-4">משוב מהמורה הווירטואלי</h3>
+                  <div className="text-gray-700 leading-relaxed whitespace-pre-line text-base md:text-lg">
+                    {aiFeedback}
+                  </div>
+                  
+                  {aiScore !== null && aiScore >= 80 && !isSubmitted && (
+                    <div className="mt-6 md:mt-8 bg-green-50 p-4 md:p-6 rounded-xl border border-green-200">
+                      <h4 className="text-green-900 font-bold text-lg md:text-xl mb-2 flex items-center gap-2">
+                        <Award className="w-5 h-5 md:w-6 md:h-6 text-green-600" />
+                        כל הכבוד ציון מעולה
+                      </h4>
+                      <p className="text-green-800 mb-4 font-medium text-sm md:text-base">התשובה שלכם איכותית ומספיקה. תרצו לשמור קובץ PDF מסודר להגשה למורה?</p>
+                      
+                      {pdfError && (
+                        <div className="mb-4 text-red-600 font-bold text-sm md:text-base">
+                          אירעה שגיאה ביצירת הקובץ. אנא נסו שוב.
+                        </div>
+                      )}
+                      
+                      {!showSubmitForm ? (
+                        <button 
+                          onClick={() => setShowSubmitForm(true)}
+                          className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 md:px-6 rounded-lg transition-colors shadow-sm text-sm md:text-base"
+                        >
+                          כן אני רוצה להגיש
+                        </button>
+                      ) : (
+                        <div className="space-y-3 md:space-y-4 animate-fadeIn mt-4 border-t border-green-200 pt-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                            <input 
+                              type="text" 
+                              placeholder="שם התלמיד או התלמידה" 
+                              value={studentName}
+                              onChange={(e) => setStudentName(e.target.value)}
+                              className="p-2.5 md:p-3 rounded-lg border border-green-300 focus:ring-2 focus:ring-green-500 outline-none w-full text-sm md:text-base"
+                            />
+                            <input 
+                              type="text" 
+                              placeholder="כיתה" 
+                              value={studentClass}
+                              onChange={(e) => setStudentClass(e.target.value)}
+                              className="p-2.5 md:p-3 rounded-lg border border-green-300 focus:ring-2 focus:ring-green-500 outline-none w-full text-sm md:text-base"
+                            />
+                          </div>
+                          <button 
+                            onClick={handleDownloadFile}
+                            disabled={!studentName.trim() || !studentClass.trim() || isGeneratingPDF}
+                            className={`w-full flex justify-center items-center gap-2 py-2.5 md:py-3 rounded-lg font-bold transition-all shadow-sm text-sm md:text-base
+                              ${(!studentName.trim() || !studentClass.trim() || isGeneratingPDF)
+                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                : 'bg-green-600 hover:bg-green-700 text-white shadow-md'}`}
+                          >
+                            {isGeneratingPDF ? <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" /> : <Download className="w-4 h-4 md:w-5 md:h-5" />}
+                            {isGeneratingPDF ? 'מכין מסמך להורדה' : 'הורדת קובץ'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {isSubmitted && (
+                    <div className="mt-6 md:mt-8 bg-blue-50 p-4 md:p-6 rounded-xl border border-blue-200 text-center animate-fadeIn">
+                      <CheckCircle className="w-10 h-10 md:w-12 md:h-12 text-blue-500 mx-auto mb-2 md:mb-3" />
+                      <h4 className="text-blue-900 font-bold text-xl md:text-2xl mb-2">הקובץ נוצר בהצלחה</h4>
+                      <p className="text-blue-800 text-base md:text-lg font-medium">הקובץ ירד למחשב או למכשיר שלכם.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        }
+      };
+
+      return (
+        <>
+        <div dir="rtl" className="min-h-screen py-4 sm:py-8 px-2 sm:px-4 font-sans text-right">
+          <div className="max-w-3xl mx-auto bg-white rounded-2xl md:rounded-3xl shadow-lg overflow-hidden border border-slate-100">
+            
+            <div className="bg-blue-600 text-white p-4 md:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+              <div>
+                <h1 className="text-xl md:text-2xl font-bold">הכנה לבגרות בהיסטוריה</h1>
+                <p className="text-blue-100 mt-1 text-sm md:text-base">יהודי ארצות האסלאם בשנות ה-40 וה-50</p>
+              </div>
+              <div className="bg-blue-700 px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-semibold shadow-inner text-sm md:text-base self-end sm:self-auto">
+                שלב {currentStep + 1} מתוך {steps.length}
+              </div>
+            </div>
+
+            <div className="h-1.5 md:h-2 bg-gray-100 w-full">
+              <div 
+                className="h-full bg-yellow-400 transition-all duration-500 ease-out"
+                style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
+              />
+            </div>
+
+            <div className="p-4 sm:p-6 md:p-8">
+              {renderContent()}
+            </div>
+
+            <div className="bg-gray-50 p-4 md:p-6 border-t border-gray-100 flex items-center justify-between">
+              <button
+                onClick={prevStep}
+                disabled={currentStep === 0}
+                className={`flex items-center gap-1.5 md:gap-2 px-4 md:px-6 py-2 md:py-3 rounded-xl font-medium transition-all text-sm md:text-base
+                  ${currentStep === 0 
+                    ? 'text-gray-400 cursor-not-allowed' 
+                    : 'text-gray-700 bg-white hover:bg-gray-100 border border-gray-200'}`}
+              >
+                <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
+                חזור
+              </button>
+
+              {currentStep < steps.length - 1 && (
+                <button
+                  onClick={nextStep}
+                  className="flex items-center gap-1.5 md:gap-2 px-6 md:px-8 py-2 md:py-3 rounded-xl font-bold transition-all shadow-sm bg-blue-600 hover:bg-blue-700 text-white hover:shadow-md text-sm md:text-base"
+                >
+                  המשך
+                  <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div 
+          id="pdf-hidden-content" 
+          dir="rtl" 
+          className="bg-white text-black p-12 font-sans text-right" 
+          style={{ 
+            position: 'absolute', 
+            left: '-9999px', 
+            top: 0, 
+            width: '800px', 
+            minHeight: '1122px', 
+            zIndex: -1000 
+          }}
+        >
+          <h1 className="text-3xl font-bold text-blue-900 border-b-2 border-blue-200 pb-2 mb-6">הגשת מטלה בהיסטוריה</h1>
+          <div className="bg-green-50 border border-green-200 p-6 rounded-xl mb-8">
+            <p className="text-lg mb-2"><strong>שם התלמיד:</strong> {studentName}</p>
+            <p className="text-lg mb-2"><strong>כיתה:</strong> {studentClass}</p>
+            <p className="text-lg"><strong>ציון המערכת:</strong> <span className="font-bold text-green-700">{aiScore}/100</span></p>
+          </div>
+          <div className="mb-8">
+            <h2 className="text-xl font-bold text-indigo-900 mb-3">תשובת התלמיד:</h2>
+            <div className="bg-gray-50 border border-gray-200 p-6 rounded-xl whitespace-pre-wrap text-gray-800 leading-relaxed text-lg">
+              {userEssay}
+            </div>
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-indigo-900 mb-3">משוב המורה הווירטואלי:</h2>
+            <div className="bg-gray-50 border border-gray-200 p-6 rounded-xl whitespace-pre-wrap text-gray-800 leading-relaxed text-lg">
+              {aiFeedback}
+            </div>
+          </div>
+        </div>
+        </>
+      );
+    };
+
+    const root = createRoot(document.getElementById('root'));
+    root.render(<BagrutLomda />);
+  </script>
+</body>
+</html>

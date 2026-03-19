@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>הכנה לבגרות בהיסטוריה</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FIX 1: overflow-x:hidden on html element too (iOS Safari ignores it on body alone) -->
+  <style>
+    html, body { overflow-x: hidden; max-width: 100vw; }
+  </style>
   <script type="importmap">
     {
       "imports": {
@@ -67,10 +71,8 @@
       ];
 
       const callGeminiAPI = async (prompt, systemInstruction) => {
-        // הכנס את המפתח החדש שלך בתוך המרכאות בשורה הבאה
         const apiKey = "AIzaSyCuF86NuNu_NFeWaapaWUaZ7S3CenQoOhU"; 
-        
-const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey;
+        const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey;
         
         const payload = {
           contents: [{ parts: [{ text: prompt }] }],
@@ -125,7 +127,7 @@ const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-
         חובה להתחיל את התשובה שלך בדיוק במילים "ציון: X/100" כאשר X הוא הציון המספרי.
         לאחר מכן פתח שורה חדשה וכתוב פסקת משוב קצרה. ציין מה היה טוב בתשובה ומה חסר בה. תהיה מורה חיובי ומעודד בעברית ללא שימוש בנקודה פסיק וללא מקפים ארוכים.`;
 
-const response = await callGeminiAPI(prompt, `אתה בודק בחינות בגרות בהיסטוריה. עליך להעריך את התשובה ולתת ציון מדויק לפי הנחיות הפיקוח:
+        const response = await callGeminiAPI(prompt, `אתה בודק בחינות בגרות בהיסטוריה. עליך להעריך את התשובה ולתת ציון מדויק לפי הנחיות הפיקוח:
         1. שים לב להבדל בין "הצג" (תיאור הפעולה בלבד) לבין "הסבר" (התייחסות לסיבות ותוצאות).
         2. אם התלמיד רק "הציג" במקום "להסביר", הוא זכאי לכל היותר ל-70% מהניקוד.
         3. חובה לעגן את התשובה בקטע המקור במילים של התלמיד.
@@ -156,33 +158,32 @@ const response = await callGeminiAPI(prompt, `אתה בודק בחינות בג�
         setIsGeneratingPDF(true);
         setPdfError(false);
 
-    try {
-  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js')
-  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js')
+        try {
+          await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+          await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
 
-  const element = document.getElementById('pdf-hidden-content')
-  
-  const canvas = await window.html2canvas(element, {
-    scale: 2,
-    useCORS: true,
-    backgroundColor: '#ffffff',
-    onclone: (clonedDocument) => {
-      const clonedElement = clonedDocument.getElementById('pdf-hidden-content')
-      clonedElement.style.position = 'absolute'
-      clonedElement.style.top = '0'
-      clonedElement.style.left = '0'
-    }
-  })
-
-  const imgData = canvas.toDataURL('image/jpeg', 1.0)
-  const { jsPDF } = window.jspdf
-  
-  const pdf = new jsPDF('p', 'mm', 'a4')
-  const pdfWidth = pdf.internal.pageSize.getWidth()
-  const pdfHeight = (canvas.height * pdfWidth) / canvas.width
-
-  pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight)
+          const element = document.getElementById('pdf-hidden-content');
           
+          const canvas = await window.html2canvas(element, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#ffffff',
+            onclone: (clonedDocument) => {
+              const clonedElement = clonedDocument.getElementById('pdf-hidden-content');
+              clonedElement.style.position = 'absolute';
+              clonedElement.style.top = '0';
+              clonedElement.style.left = '0';
+            }
+          });
+
+          const imgData = canvas.toDataURL('image/jpeg', 1.0);
+          const { jsPDF } = window.jspdf;
+          
+          const pdf = new jsPDF('p', 'mm', 'a4');
+          const pdfWidth = pdf.internal.pageSize.getWidth();
+          const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+          pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
           pdf.save(`הגשת_היסטוריה_${studentName.replace(/\s+/g, '_')}.pdf`);
           
           setIsSubmitted(true);
@@ -667,7 +668,7 @@ const response = await callGeminiAPI(prompt, `אתה בודק בחינות בג�
       return (
         <>
         <div dir="rtl" className="min-h-screen w-full max-w-[100vw] overflow-x-hidden py-4 sm:py-8 px-2 sm:px-4 font-sans text-right">
-  <div className="max-w-3xl mx-auto w-full bg-white rounded-2xl md:rounded-3xl shadow-lg overflow-hidden border border-slate-100 relative">
+          <div className="max-w-3xl mx-auto w-full bg-white rounded-2xl md:rounded-3xl shadow-lg overflow-hidden border border-slate-100 relative">
             
             <div className="bg-blue-600 text-white p-4 md:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
               <div>
@@ -716,17 +717,20 @@ const response = await callGeminiAPI(prompt, `אתה בודק בחינות בג�
           </div>
         </div>
 
+        {/* FIX 2: position:fixed instead of position:absolute — takes the element out of
+            document flow entirely so it cannot cause the page to expand */}
         <div 
           id="pdf-hidden-content" 
           dir="rtl" 
           className="bg-white text-black p-12 font-sans text-right" 
           style={{ 
-            position: 'absolute', 
-            left: '-9999px', 
-            top: 0, 
+            position: 'fixed',
+            left: '-9999px',
+            top: '-9999px',
             width: '800px', 
             minHeight: '1122px', 
-            zIndex: -1000 
+            zIndex: -1000,
+            pointerEvents: 'none'
           }}
         >
           <h1 className="text-3xl font-bold text-blue-900 border-b-2 border-blue-200 pb-2 mb-6">הגשת מטלה בהיסטוריה</h1>

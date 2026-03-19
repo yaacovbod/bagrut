@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title> הכנה לבגרות בהיסטוריה</title>
+  <title>דשבורד הכנה לבגרות בהיסטוריה</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     html, body { overflow-x: hidden; max-width: 100vw; }
@@ -159,6 +159,7 @@
         try {
           await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
+            mode: 'no-cors',
             headers: { 'Content-Type': 'text/plain' },
             body: JSON.stringify({
               topic_id: selectedTopic,
@@ -169,11 +170,29 @@
               feedback: aiFeedback
             })
           })
+          
           setIsSubmitted(true)
+          setIsSubmittingGrade(false)
+          
+          setTimeout(() => {
+            setSelectedTopic(null)
+            setCurrentStep(0)
+            setSelectedAnswers({})
+            setShowExplanationMap({})
+            setWrongAnswersMap({})
+            setShowErrorMsgMap({})
+            setUserEssay('')
+            setAiFeedback('')
+            setAiScore(null)
+            setStudentName('')
+            setStudentClass('')
+            setIsSubmitted(false)
+          }, 3000)
+
         } catch (e) {
           console.error(e)
+          setIsSubmittingGrade(false)
         }
-        setIsSubmittingGrade(false)
       }
 
       if (isLoading) {
@@ -456,7 +475,7 @@
                       {isSubmitted && (
                         <div className="mt-6 bg-blue-50 p-5 rounded-2xl border border-blue-200 text-center animate-fadeIn text-blue-900 font-bold">
                           <CheckCircle className="w-10 h-10 mx-auto text-blue-500 mb-2" />
-                          הציון והתשובה נשמרו בהצלחה במערכת המורה
+                          הציון נשמר בהצלחה! חוזר לדשבורד באופן אוטומטי...
                         </div>
                       )}
                     </div>

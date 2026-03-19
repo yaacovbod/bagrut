@@ -259,29 +259,96 @@
                 </div>
               )}
 
-              {step?.step_type === 'text-selection' && (
-                <div className="space-y-6 animate-fadeIn">
-                   <div className="text-center space-y-2">
-                     <h2 className="text-xl font-bold text-slate-800">{step.content}</h2>
-                     <p className="text-blue-600 font-medium text-sm">לחצו על המשפטים הרלוונטיים בטקסט</p>
-                   </div>
-                   <div className="bg-[#fdfbf7] p-6 rounded-2xl border border-amber-200 shadow-inner max-h-96 overflow-y-auto">
-                    <div className="whitespace-pre-line leading-loose text-lg">
-                      {currentTexts.map(t => (
-                        <span 
-                          key={t.id}
-                          onClick={() => handleAnswerSelect(t.id)}
-                          className={`cursor-pointer transition-colors px-1 rounded mx-0.5 ${
-                            showExplanation && (Array.isArray(step.correct_answer) ? step.correct_answer.includes(t.id) : t.id === step.correct_answer)
-                            ? 'bg-green-200 font-bold text-green-900' 
-                            : wrongAnswers.includes(t.id) ? 'bg-red-200 line-through text-red-900' : 'hover:bg-amber-100'
-                          }`}
-                        >
-                          {t.text} 
-                        </span>
-                      ))}
-                    </div>
-                  </div>
+            {step?.step_type === 'text-selection' && (
+  <div className="space-y-6 animate-fadeIn">
+    <div className="text-center space-y-2">
+      <h2 className="text-xl font-bold text-slate-800">{step.content}</h2>
+      <p className="text-blue-600 font-medium text-sm">
+        {step.require_multiple ? 'לחצו על כל המשפטים הרלוונטיים בטקסט' : 'לחצו על המשפט הרלוונטי בטקסט'}
+      </p>
+    </div>
+    <div className="bg-[#fdfbf7] p-6 rounded-2xl border border-amber-200 shadow-inner max-h-96 overflow-y-auto">
+      <div className="whitespace-pre-line leading-loose text-lg">
+        {currentTexts.map(t => {
+          const isSelected = Array.isArray(selectedAnswer) ? selectedAnswer.includes(t.id) : selectedAnswer === t.id
+          const isCorrectSegment = Array.isArray(step.correct_answer) ? step.correct_answer.includes(t.id) : t.id === step.correct_answer
+          
+          let spanClass = "cursor-pointer transition-colors px-1 rounded mx-0.5 "
+          
+          if (showExplanation) {
+            if (isCorrectSegment) spanClass += "bg-green-200 font-bold text-green-900"
+            else spanClass += "text-slate-400"
+          } else {
+            if (step.require_multiple) {
+              if (isSelected) {
+                if (showErrorMsg) {
+                  spanClass += isCorrectSegment ? "bg-green-200 font-bold text-green-900" : "bg-red-200 line-through text-red-900"
+                } else {
+                  spanClass += "bg-blue-200 text-blue-900"
+                }
+              } else {
+                spanClass += "hover:bg-amber-100"
+              }
+            } else {
+              if (wrongAnswers.includes(t.id)) spanClass += "bg-red-200 line-through text-red-900"
+              else spanClass += "hover:bg-amber-100"
+            }
+          }
+
+          return (
+            <span 
+              key={t.id}
+              onClick={() => handleAnswerSelect(t.id)}
+              className={spanClass}
+            >
+              {t.text} 
+            </span>
+          )
+        })}
+      </div>
+    </div>
+    
+    {step.require_multiple && showErrorMsg && !showExplanation && (
+      <div className={`p-5 rounded-2xl flex gap-3 animate-fadeIn ${
+        (Array.isArray(selectedAnswer) && selectedAnswer.filter(id => step.correct_answer.includes(id)).length > 0)
+          ? 'bg-orange-100 text-orange-900' : 'bg-red-100 text-red-900'
+      }`}>
+        <XCircle className="shrink-0 mt-1" />
+        <div>
+          <p className="font-bold text-lg mb-1">
+            {(Array.isArray(selectedAnswer) && selectedAnswer.filter(id => step.correct_answer.includes(id)).length > 0)
+              ? 'חצי דרך לשם' : 'לא מדויק נסו שוב'}
+          </p>
+          <p>
+            {(Array.isArray(selectedAnswer) && selectedAnswer.filter(id => step.correct_answer.includes(id)).length > 0)
+              ? 'משפט אחד שסימנתם נכון והשארנו אותו בירוק. לחצו על המשפט האדום כדי לבטל אותו ונסו לחפש את המשפט המשלים.'
+              : 'המשפטים שסימנתם אינם נכונים. לחצו עליהם כדי לבטל את הסימון ונסו שוב.'}
+          </p>
+        </div>
+      </div>
+    )}
+
+    {!step.require_multiple && wrongAnswers.length > 0 && !showExplanation && (
+      <div className="bg-red-100 p-5 rounded-2xl text-red-900 flex gap-3 animate-fadeIn">
+        <XCircle className="shrink-0 mt-1" />
+        <div>
+          <p className="font-bold text-lg mb-1">לא מדויק כדאי לנסות שוב</p>
+          <p>המשפט שסימנתם אינו התשובה הנכונה. המשיכו לחפש בטקסט.</p>
+        </div>
+      </div>
+    )}
+
+    {showExplanation && (
+      <div className="bg-green-100 p-5 rounded-2xl text-green-900 flex gap-3 mt-4 animate-fadeIn">
+        <CheckCircle className="shrink-0 mt-1" />
+        <div>
+          <p className="font-bold text-lg mb-1">נכון מאוד</p>
+          <p>{step.explanation}</p>
+        </div>
+      </div>
+    )}
+  </div>
+)}
                   {showExplanation && (
                     <div className="bg-green-100 p-5 rounded-2xl text-green-900 flex gap-3 animate-fadeIn">
                       <CheckCircle className="shrink-0" />

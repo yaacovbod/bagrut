@@ -5,8 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>דשבורד הכנה לבגרות בהיסטוריה</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
-    html, body { overflow-x: hidden; max-width: 100vw; }
+    html, body { overflow-x: hidden; max-width: 100vw; font-family: 'Rubik', sans-serif; }
     .animate-fadeIn { animation: fadeIn 0.4s ease-out; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   </style>
@@ -106,7 +109,7 @@
             
             setIsLoading(false)
           } catch (error) {
-            console.error("Error fetching data", error)
+            console.error("שגיאה בטעינת נתונים", error)
             setIsLoading(false)
           }
         }
@@ -172,14 +175,18 @@
         try {
           const res = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
-            body: JSON.stringify({ action: 'grade_essay', prompt: prompt })
+            body: JSON.stringify({ 
+              action: 'grade_essay', 
+              prompt: prompt,
+              password: sitePassword
+            })
           })
           const result = await res.json()
           setAiFeedback(result.feedback)
           const match = result.feedback.match(/ציון:\s*(\d+)/)
           if (match) setAiScore(parseInt(match[1], 10))
         } catch (e) {
-          setAiFeedback("שגיאה בתקשורת עם שרת הבדיקה")
+          setAiFeedback("שגיאה בתקשורת עם השרת")
         }
         setIsGrading(false)
       }
@@ -197,7 +204,8 @@
               studentClass: studentClass,
               score: aiScore,
               essay: userEssay,
-              feedback: aiFeedback
+              feedback: aiFeedback,
+              password: sitePassword
             })
           })
           setIsSubmitted(true)
@@ -244,7 +252,7 @@
                   value={passwordInput}
                   onChange={(e) => setPasswordInput(e.target.value)}
                   placeholder="סיסמת גישה"
-                  className="w-full p-4 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none text-center text-lg"
+                  className="w-full p-4 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none text-center text-lg font-sans"
                 />
                 {passwordError && <p className="text-red-500 text-sm text-center font-bold">הסיסמה שגויה נסו שוב</p>}
                 <button 
@@ -398,7 +406,7 @@
                       <p className="whitespace-pre-line text-slate-700 text-lg leading-relaxed">{aiFeedback}</p>
                       {aiScore >= 80 && !isSubmitted && (
                         <div className="mt-6 bg-green-50 p-5 rounded-2xl border border-green-200">
-                          <h4 className="font-bold text-green-900 mb-3">ציון מעולה! הכניסו פרטים לשמירה</h4>
+                          <h4 className="font-bold text-green-900 mb-3">ציון מעולה הכניסו פרטים לשמירה</h4>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                             <input type="text" placeholder="שם מלא" value={studentName} onChange={e => setStudentName(e.target.value)} className="p-3 rounded-xl border border-green-300" />
                             <input type="text" placeholder="כיתה" value={studentClass} onChange={e => setStudentClass(e.target.value)} className="p-3 rounded-xl border border-green-300" />
@@ -406,7 +414,7 @@
                           <button onClick={handleSubmitGrade} disabled={!studentName.trim() || isSubmittingGrade} className="w-full bg-green-600 text-white font-bold py-3 rounded-xl">{isSubmittingGrade ? 'שומר...' : 'שלח ציון למורה'}</button>
                         </div>
                       )}
-                      {isSubmitted && <div className="mt-6 bg-blue-50 p-5 rounded-2xl text-blue-900 font-bold text-center"><CheckCircle className="w-10 h-10 mx-auto text-blue-500 mb-2" />הציון נשמר בהצלחה! חוזר לדשבורד...</div>}
+                      {isSubmitted && <div className="mt-6 bg-blue-50 p-5 rounded-2xl text-blue-900 font-bold text-center"><CheckCircle className="w-10 h-10 mx-auto text-blue-500 mb-2" />הציון נשמר בהצלחה חוזר לדשבורד...</div>}
                     </div>
                   )}
                 </div>

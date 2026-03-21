@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>דשבורד הכנה לבגרות בהיסטוריה</title>
+  <title> הכנה לבגרות בהיסטוריה</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -52,7 +52,8 @@
             { id: "deco_q2", title: "שאלה 2" },
             { id: "deco_q3", title: "שאלה 3" },
             { id: "deco_q4", title: "שאלה 4" },
-            { id: "deco_q5", title: "שאלה 5" }
+            { id: "deco_q5", title: "שאלה 5" },
+            { id: "deco_q6", title: "שאלה 6" }
           ],
           "העליות בשנות ה50 וה60": [
             { id: "olim_q1", title: "שאלה 1" }
@@ -171,7 +172,13 @@
       const handleGradeEssay = async () => {
         if (!userEssay.trim()) return
         setIsGrading(true)
-        const prompt = `השאלה: ${step.content} תשובת התלמיד: ${userEssay}`
+        
+        let prompt = `השאלה ${step.content}\nתשובת התלמיד ${userEssay}`
+        
+        if (step.reference_answer) {
+          prompt += `\n\nשים לב מדובר בשאלה עם מחוון ספציפי למורה עליך לתת את הציון אך ורק על סמך אזכור הנקודות הבאות מתוך המחוון \n${step.reference_answer}`
+        }
+
         try {
           const res = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
@@ -183,7 +190,7 @@
           })
           const result = await res.json()
           setAiFeedback(result.feedback)
-          const match = result.feedback.match(/ציון:\s*(\d+)/)
+          const match = result.feedback.match(/ציון\s*(\d+)/)
           if (match) setAiScore(parseInt(match[1], 10))
         } catch (e) {
           setAiFeedback("שגיאה בתקשורת עם השרת")
@@ -230,7 +237,7 @@
         return (
           <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
             <Loader2 className="w-12 h-12 text-blue-600 animate-spin mb-4" />
-            <p className="text-xl font-bold text-slate-700">טוען נתונים מהמערכת...</p>
+            <p className="text-xl font-bold text-slate-700">טוען נתונים מהמערכת</p>
           </div>
         )
       }
@@ -392,14 +399,22 @@
               )}
               {step?.step_type === 'ai-practice' && (
                 <div className="space-y-6 animate-fadeIn">
-                  <div className="bg-[#fdfbf7] p-5 rounded-2xl border border-amber-200 shadow-inner max-h-48 overflow-y-auto mb-4">
-                    <h3 className="font-bold text-amber-900 mb-2 flex items-center gap-2 text-sm"><FileText className="w-4 h-4" /> קטע המקור לתרגול</h3>
-                    <div className="whitespace-pre-line leading-relaxed text-slate-800 text-sm">{currentTexts.map(t => <span key={t.id}>{t.text} </span>)}</div>
-                  </div>
+                  {currentTexts.length > 0 && (
+                    <div className="bg-[#fdfbf7] p-5 rounded-2xl border border-amber-200 shadow-inner max-h-48 overflow-y-auto mb-4">
+                      <h3 className="font-bold text-amber-900 mb-2 flex items-center gap-2 text-sm"><FileText className="w-4 h-4" /> קטע המקור לתרגול</h3>
+                      <div className="whitespace-pre-line leading-relaxed text-slate-800 text-sm">{currentTexts.map(t => <span key={t.id}>{t.text} </span>)}</div>
+                    </div>
+                  )}
+                  {step.image_url && (
+                    <div className="w-full text-center my-4 animate-fadeIn">
+                      <img src={step.image_url} alt="מקור חזותי לניתוח" className="w-full max-w-lg mx-auto rounded-3xl shadow-xl border-4 border-slate-100 hover:scale-[1.02] transition-transform duration-300" />
+                      <p className="text-xs text-slate-400 mt-2">הקריקטורה מתוך השאלה</p>
+                    </div>
+                  )}
                   <div className="bg-indigo-50 p-6 rounded-3xl border-2 border-indigo-100">
                     <p className="text-lg text-slate-800 font-medium leading-relaxed whitespace-pre-line">{step.content}</p>
-                    <textarea value={userEssay} onChange={(e) => setUserEssay(e.target.value)} className="w-full h-44 p-5 mt-5 rounded-2xl border-none shadow-inner focus:ring-2 focus:ring-indigo-500 outline-none text-slate-700" placeholder="כתבו כאן את התשובה המפורטת שלכם..." />
-                    <button onClick={handleGradeEssay} disabled={isGrading || !userEssay.trim()} className="w-full mt-5 bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-indigo-700 transition-all flex items-center justify-center gap-3">{isGrading ? <Loader2 className="animate-spin" /> : <Sparkles />}{isGrading ? 'המורה בודק...' : 'שלח לבדיקת בינה מלאכותית'}</button>
+                    <textarea value={userEssay} onChange={(e) => setUserEssay(e.target.value)} className="w-full h-44 p-5 mt-5 rounded-2xl border-none shadow-inner focus:ring-2 focus:ring-indigo-500 outline-none text-slate-700" placeholder="כתבו כאן את התשובה המפורטת שלכם" />
+                    <button onClick={handleGradeEssay} disabled={isGrading || !userEssay.trim()} className="w-full mt-5 bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-indigo-700 transition-all flex items-center justify-center gap-3">{isGrading ? <Loader2 className="animate-spin" /> : <Sparkles />}{isGrading ? 'המורה בודק' : 'שלח לבדיקת בינה מלאכותית'}</button>
                   </div>
                   {aiFeedback && (
                     <div className="bg-white p-6 rounded-3xl border-2 border-green-200 shadow-sm animate-fadeIn">
@@ -411,10 +426,10 @@
                             <input type="text" placeholder="שם מלא" value={studentName} onChange={e => setStudentName(e.target.value)} className="p-3 rounded-xl border border-green-300" />
                             <input type="text" placeholder="כיתה" value={studentClass} onChange={e => setStudentClass(e.target.value)} className="p-3 rounded-xl border border-green-300" />
                           </div>
-                          <button onClick={handleSubmitGrade} disabled={!studentName.trim() || isSubmittingGrade} className="w-full bg-green-600 text-white font-bold py-3 rounded-xl">{isSubmittingGrade ? 'שומר...' : 'שלח ציון למורה'}</button>
+                          <button onClick={handleSubmitGrade} disabled={!studentName.trim() || isSubmittingGrade} className="w-full bg-green-600 text-white font-bold py-3 rounded-xl">{isSubmittingGrade ? 'שומר' : 'שלח ציון למורה'}</button>
                         </div>
                       )}
-                      {isSubmitted && <div className="mt-6 bg-blue-50 p-5 rounded-2xl text-blue-900 font-bold text-center"><CheckCircle className="w-10 h-10 mx-auto text-blue-500 mb-2" />הציון נשמר בהצלחה חוזר לדשבורד...</div>}
+                      {isSubmitted && <div className="mt-6 bg-blue-50 p-5 rounded-2xl text-blue-900 font-bold text-center"><CheckCircle className="w-10 h-10 mx-auto text-blue-500 mb-2" />הציון נשמר בהצלחה חוזר לדשבורד</div>}
                     </div>
                   )}
                 </div>

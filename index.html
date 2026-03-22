@@ -201,13 +201,21 @@
           const correctOnes = Array.isArray(step.correct_answer) ? step.correct_answer.map(String) : [String(step.correct_answer)]
           const nextStrings = next.map(String)
           
-          if (next.length === correctOnes.length) {
-            if (nextStrings.every(val => correctOnes.includes(val))) {
-              setShowExplanationMap(prev => ({ ...prev, [currentStep]: true }))
-            } else {
-              setShowErrorMsgMap(prev => ({ ...prev, [currentStep]: true }))
-            }
-          }
+         if (next.length === correctOnes.length) {
+  if (nextStrings.every(val => correctOnes.includes(val))) {
+    setShowExplanationMap(prev => ({ ...prev, [currentStep]: true }))
+  } else {
+    const wrongOnes = next.filter(val => !correctOnes.includes(String(val)))
+    const rightOnes = next.filter(val => correctOnes.includes(String(val)))
+    setWrongAnswersMap(prev => ({
+      ...prev,
+      [currentStep]: [...(prev[currentStep] || []), ...wrongOnes]
+    }))
+    // שמור רק את הנכונים בסלקשן — אם שניהם שגויים זה מאפס הכל
+    setSelectedAnswers(prev => ({ ...prev, [currentStep]: rightOnes }))
+    setShowErrorMsgMap(prev => ({ ...prev, [currentStep]: true }))
+  }
+}
         } else {
           const isCorrect = String(index) === String(step.correct_answer)
           

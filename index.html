@@ -134,16 +134,35 @@
       }, [])
 
       const currentSteps = useMemo(() => {
-        if (!selectedTopic) return []
+        if (!selectedTopic || !Array.isArray(allData.questions)) return []
         return allData.questions.filter(q => q.topic_id === selectedTopic)
       }, [allData, selectedTopic])
 
       const currentTexts = useMemo(() => {
-        if (!selectedTopic) return []
+        if (!selectedTopic || !allData.texts) return []
         return allData.texts[selectedTopic] || []
       }, [allData, selectedTopic])
 
-      const step = currentSteps[currentStep]
+      const step = currentSteps[currentStep] || null
+
+      const safeOptions = useMemo(() => {
+        if (!step || !step.options) return []
+        if (Array.isArray(step.options)) return step.options
+        if (typeof step.options === 'string') return step.options.split('|').map(s => s.trim())
+        return [step.options.toString()]
+      }, [step])
+
+      const displayedTexts = useMemo(() => {
+        if (step?.step_type !== 'text-selection') return currentTexts
+        if (safeOptions.length === 1 && typeof safeOptions[0] === 'string' && safeOptions[0].includes('-')) {
+          const bounds = safeOptions[0].replace(/'/g, '').split('-')
+          const start = parseInt(bounds[0], 10)
+          const end = parseInt(bounds[1], 10)
+          return currentTexts.filter(t => parseInt(t.id, 10) >= start && parseInt(t.id, 10) <= end)
+        }
+        return currentTexts
+      }, [currentTexts, step, safeOptions])
+
       const selectedAnswer = selectedAnswers[currentStep]
       const showExplanation = showExplanationMap[currentStep] || false
       const wrongAnswers = wrongAnswersMap[currentStep] || []
@@ -368,17 +387,18 @@
         )
       }
 
-      // הוספת מנגנון הסינון החכם שמזהה מקף ומציג רק את הטווח הרצוי
-      const displayedTexts = useMemo(() => {
-        if (step?.step_type !== 'text-selection') return currentTexts
-        if (step.options && step.options.length === 1 && step.options[0].includes('-')) {
-          const bounds = step.options[0].split('-')
-          const start = parseInt(bounds[0], 10)
-          const end = parseInt(bounds[1], 10)
-          return currentTexts.filter(t => parseInt(t.id, 10) >= start && parseInt(t.id, 10) <= end)
-        }
-        return currentTexts
-      }, [currentTexts, step])
+      if (selectedTopic && currentSteps.length === 0) {
+        return (
+          <div className="min-h-screen p-4 md:p-8 flex flex-col items-center justify-center text-right" dir="rtl">
+            <div className="bg-white p-8 rounded-3xl shadow-lg border border-red-200 max-w-lg w-full text-center">
+              <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-slate-800 mb-2">אין שאלות לנושא זה</h2>
+              <p className="text-slate-600 mb-6">נראה שאין עדיין שאלות בגיליון עבור מזהה הנושא שבחרת או שיש שגיאת כתיב קטנה בגיליון.</p>
+              <button onClick={() => setSelectedTopic(null)} className="bg-blue-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-blue-700 transition-colors">חזרה לדשבורד</button>
+            </div>
+          </div>
+        )
+      }
 
       return (
         <div className="min-h-screen py-4 px-2 sm:px-4 animate-fadeIn text-right" dir="rtl">
@@ -419,7 +439,7 @@
               {step?.step_type === 'question' && (
                 <div className="space-y-4 animate-fadeIn">
                   <h2 className="text-xl font-bold text-slate-800 mb-6">{step.content}</h2>
-                  {step.options.map((opt, idx) => (
+                  {safeOptions.map((opt, idx) => (
                     <button key={idx} onClick={() => handleAnswerSelect(idx)} disabled={showExplanation} className={`w-full text-right p-4 rounded-2xl border-2 transition-all ${showExplanation && idx === step.correct_answer ? 'border-green-500 bg-green-50 text-green-900' : wrongAnswers.includes(idx) ? 'border-red-200 opacity-50' : 'border-slate-200 hover:border-blue-400 hover:bg-blue-50'}`}>{opt}</button>
                   ))}
                   {showExplanation && <div className="bg-green-100 p-5 rounded-2xl text-green-900 flex gap-3"><CheckCircle className="shrink-0" /><p>{step.explanation}</p></div>}

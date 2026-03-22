@@ -3,31 +3,31 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title> הכנה לבגרות בהיסטוריה</title>
+  <title>דשבורד הכנה לבגרות בהיסטוריה</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
-  html, body {
-    overflow-x: hidden;
-    max-width: 100vw;
-    font-family: 'Rubik', sans-serif;
-    background: linear-gradient(rgba(255, 255, 255, 0.50), rgba(255, 255, 255, 0.50)),
-                url('./backround.png');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    background-repeat: no-repeat;
-  }
-  
-  #root > div {
-    background-color: transparent !important;
-  }
-  
-  .animate-fadeIn { animation: fadeIn 0.4s ease-out; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-</style>
+    html, body {
+      overflow-x: hidden;
+      max-width: 100vw;
+      font-family: 'Rubik', sans-serif;
+      background: linear-gradient(rgba(255, 255, 255, 0.50), rgba(255, 255, 255, 0.50)),
+                  url('./backround.png');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      background-repeat: no-repeat;
+    }
+    
+    #root > div {
+      background-color: transparent !important;
+    }
+    
+    .animate-fadeIn { animation: fadeIn 0.4s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
   <script type="importmap">
     {
       "imports": {
@@ -68,10 +68,11 @@
             { id: "deco_q3", title: "שאלה 3" },
             { id: "deco_q4", title: "שאלה 4" },
             { id: "deco_q5", title: "שאלה 5" },
-            { id: "deco_q6", title: "שאלה 6" }
+            { id: "deco_q6", title: "שאלה 6 ניתוח קריקטורה" }
           ],
           "העליות בשנות ה50 וה60": [
-            { id: "olim_q1", title: "שאלה 1" }
+            { id: "olim_q1", title: "שאלה 1" },
+            { id: "olim_q2", title: "שאלה 2 השוואת מקורות" }
           ],
           "מלחמת יום הכיפורים": []
         }
@@ -250,7 +251,7 @@
 
       if (isLoading) {
         return (
-          <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
+          <div className="min-h-screen flex flex-col items-center justify-center p-4">
             <Loader2 className="w-12 h-12 text-blue-600 animate-spin mb-4" />
             <p className="text-xl font-bold text-slate-700">טוען נתונים מהמערכת</p>
           </div>
@@ -259,7 +260,7 @@
 
       if (!isAuthenticated) {
         return (
-          <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4 animate-fadeIn text-right" dir="rtl">
+          <div className="min-h-screen flex flex-col items-center justify-center p-4 animate-fadeIn text-right" dir="rtl">
             <div className="bg-white p-8 rounded-3xl shadow-lg max-w-md w-full border border-slate-100">
               <div className="text-center mb-6">
                 <div className="inline-block p-4 bg-blue-100 rounded-full mb-4">
@@ -291,18 +292,18 @@
 
       if (!selectedCategory) {
         return (
-          <div className="min-h-screen p-4 md:p-8 bg-slate-50 animate-fadeIn text-right" dir="rtl">
+          <div className="min-h-screen p-4 md:p-8 animate-fadeIn text-right" dir="rtl">
             <div className="max-w-4xl mx-auto">
               <header className="mb-10 text-center">
-                <div className="inline-block p-3 bg-blue-100 rounded-2xl mb-4">
+                <div className="inline-block p-3 bg-blue-100 rounded-2xl mb-4 shadow-sm">
                   <LayoutDashboard className="w-8 h-8 text-blue-600" />
                 </div>
-                <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-2">דשבורד הכנה לבגרות</h1>
-                <p className="text-slate-600">בחרו קטגוריה כדי להתחיל</p>
+                <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-2 drop-shadow-sm">דשבורד הכנה לבגרות</h1>
+                <p className="text-slate-800 font-medium bg-white/50 inline-block px-4 py-1 rounded-full">בחרו קטגוריה כדי להתחיל</p>
               </header>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {Object.keys(DASHBOARD_STRUCTURE).map(cat => (
-                  <button key={cat} onClick={() => setSelectedCategory(cat)} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-blue-500 hover:shadow-md transition-all text-right group flex items-center justify-between">
+                  <button key={cat} onClick={() => setSelectedCategory(cat)} className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-blue-500 hover:shadow-md transition-all text-right group flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <div className="bg-blue-100 p-3 rounded-xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
                         <BookOpen className="w-6 h-6" />
@@ -320,15 +321,15 @@
 
       if (!selectedSubcategory) {
         return (
-          <div className="min-h-screen p-4 md:p-8 bg-slate-50 animate-fadeIn text-right" dir="rtl">
+          <div className="min-h-screen p-4 md:p-8 animate-fadeIn text-right" dir="rtl">
             <div className="max-w-4xl mx-auto">
-              <button onClick={() => setSelectedCategory(null)} className="text-slate-500 hover:text-blue-600 flex items-center gap-2 mb-6 font-bold transition-colors">
+              <button onClick={() => setSelectedCategory(null)} className="bg-white/80 backdrop-blur-sm text-slate-700 hover:text-blue-600 flex items-center gap-2 mb-6 font-bold py-2 px-4 rounded-xl transition-colors inline-flex">
                 <ArrowRight className="w-5 h-5" /> חזרה לקטגוריות
               </button>
-              <h2 className="text-2xl font-bold text-slate-800 mb-6">{selectedCategory} רשימת נושאים</h2>
+              <h2 className="text-2xl font-bold text-slate-800 mb-6 drop-shadow-sm">{selectedCategory} רשימת נושאים</h2>
               <div className="grid grid-cols-1 gap-4">
                 {Object.keys(DASHBOARD_STRUCTURE[selectedCategory].subcategories).map(sub => (
-                  <button key={sub} onClick={() => setSelectedSubcategory(sub)} className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 hover:border-blue-500 transition-all text-right group flex items-center justify-between">
+                  <button key={sub} onClick={() => setSelectedSubcategory(sub)} className="bg-white/90 backdrop-blur-sm p-5 rounded-2xl shadow-sm border border-slate-200 hover:border-blue-500 transition-all text-right group flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <div className="bg-slate-100 p-2 rounded-lg text-slate-500 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors"><Folder className="w-5 h-5" /></div>
                       <span className="text-lg font-bold text-slate-700 group-hover:text-blue-700 transition-colors">{sub}</span>
@@ -345,15 +346,15 @@
       if (!selectedTopic) {
         const questionsList = DASHBOARD_STRUCTURE[selectedCategory].subcategories[selectedSubcategory]
         return (
-          <div className="min-h-screen p-4 md:p-8 bg-slate-50 animate-fadeIn text-right" dir="rtl">
+          <div className="min-h-screen p-4 md:p-8 animate-fadeIn text-right" dir="rtl">
             <div className="max-w-4xl mx-auto">
-              <button onClick={() => setSelectedSubcategory(null)} className="text-slate-500 hover:text-blue-600 flex items-center gap-2 mb-6 font-bold transition-colors">
+              <button onClick={() => setSelectedSubcategory(null)} className="bg-white/80 backdrop-blur-sm text-slate-700 hover:text-blue-600 flex items-center gap-2 mb-6 font-bold py-2 px-4 rounded-xl transition-colors inline-flex">
                 <ArrowRight className="w-5 h-5" /> חזרה לרשימת הנושאים
               </button>
-              <h2 className="text-2xl font-bold text-slate-800 mb-6">{selectedSubcategory}</h2>
+              <h2 className="text-2xl font-bold text-slate-800 mb-6 drop-shadow-sm">{selectedSubcategory}</h2>
               <div className="grid grid-cols-1 gap-4">
                 {questionsList.map(q => (
-                  <button key={q.id} onClick={() => setSelectedTopic(q.id)} className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 hover:border-indigo-500 transition-all text-right group flex items-center justify-between">
+                  <button key={q.id} onClick={() => setSelectedTopic(q.id)} className="bg-white/90 backdrop-blur-sm p-5 rounded-2xl shadow-sm border border-slate-200 hover:border-indigo-500 transition-all text-right group flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <div className="bg-indigo-50 p-2 rounded-lg text-indigo-500 group-hover:bg-indigo-600 group-hover:text-white transition-colors"><Bookmark className="w-5 h-5" /></div>
                       <span className="text-lg font-bold text-slate-700 group-hover:text-indigo-700 transition-colors">{q.title}</span>
@@ -367,9 +368,21 @@
         )
       }
 
+      // הוספת מנגנון הסינון החכם שמזהה מקף ומציג רק את הטווח הרצוי
+      const displayedTexts = useMemo(() => {
+        if (step?.step_type !== 'text-selection') return currentTexts
+        if (step.options && step.options.length === 1 && step.options[0].includes('-')) {
+          const bounds = step.options[0].split('-')
+          const start = parseInt(bounds[0], 10)
+          const end = parseInt(bounds[1], 10)
+          return currentTexts.filter(t => parseInt(t.id, 10) >= start && parseInt(t.id, 10) <= end)
+        }
+        return currentTexts
+      }, [currentTexts, step])
+
       return (
         <div className="min-h-screen py-4 px-2 sm:px-4 animate-fadeIn text-right" dir="rtl">
-          <div className="max-w-3xl mx-auto bg-white rounded-3xl shadow-lg overflow-hidden border border-slate-100 relative">
+          <div className="max-w-3xl mx-auto bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl overflow-hidden border border-slate-100 relative">
             <div className="bg-blue-600 text-white p-4 md:p-6 flex items-center justify-between">
               <button onClick={() => setSelectedTopic(null)} className="p-2 hover:bg-blue-700 rounded-lg transition-colors"><ArrowRight className="w-6 h-6" /></button>
               <div className="text-center"><h1 className="text-lg md:text-xl font-bold">{step?.title}</h1><p className="text-blue-100 text-xs">{step?.subtitle}</p></div>
@@ -378,7 +391,7 @@
             <div className="p-4 md:p-8">
               {step?.step_type === 'intro' && (
                 <div className="space-y-6 animate-fadeIn">
-                  <div className="bg-blue-50 p-5 rounded-2xl text-blue-900 leading-relaxed">{step.content}</div>
+                  <div className="bg-blue-50 p-5 rounded-2xl text-blue-900 leading-relaxed font-medium">{step.content}</div>
                   <div className="bg-[#fdfbf7] p-6 rounded-2xl border border-amber-200 shadow-inner max-h-96 overflow-y-auto">
                     <div className="whitespace-pre-line leading-loose text-lg text-slate-800">{currentTexts.map(t => <span key={t.id}>{t.text} </span>)}</div>
                   </div>
@@ -389,14 +402,14 @@
                   <h2 className="text-xl font-bold text-center text-slate-800">{step.content}</h2>
                   <div className="bg-[#fdfbf7] p-6 rounded-2xl border border-amber-200 shadow-inner max-h-96 overflow-y-auto">
                     <div className="whitespace-pre-line leading-loose text-lg">
-                      {currentTexts.map(t => {
-                        const isSelected = Array.isArray(selectedAnswer) ? selectedAnswer.includes(t.id) : selectedAnswer === t.id
+                      {displayedTexts.map(t => {
+                        const isSelected = Array.isArray(selectedAnswer) ? selectedAnswer.includes(parseInt(t.id)) : selectedAnswer === parseInt(t.id)
                         const correctOnes = Array.isArray(step.correct_answer) ? step.correct_answer : [step.correct_answer]
-                        const isCorrectSegment = correctOnes.includes(t.id)
+                        const isCorrectSegment = correctOnes.includes(parseInt(t.id))
                         let spanClass = "cursor-pointer transition-colors px-1 rounded mx-0.5 "
                         if (showExplanation) spanClass += isCorrectSegment ? "bg-green-200 font-bold" : "text-slate-400"
                         else spanClass += isSelected ? (showErrorMsg ? (isCorrectSegment ? "bg-green-200" : "bg-red-200 line-through") : "bg-blue-200") : "hover:bg-amber-100"
-                        return <span key={t.id} onClick={() => handleAnswerSelect(t.id)} className={spanClass}>{t.text} </span>
+                        return <span key={t.id} onClick={() => handleAnswerSelect(parseInt(t.id))} className={spanClass}>{t.text} </span>
                       })}
                     </div>
                   </div>
@@ -423,7 +436,7 @@
                   {step.image_url && (
                     <div className="w-full text-center my-4 animate-fadeIn">
                       <img src={step.image_url} alt="מקור חזותי לניתוח" className="w-full max-w-lg mx-auto rounded-3xl shadow-xl border-4 border-slate-100 hover:scale-[1.02] transition-transform duration-300" />
-                      <p className="text-xs text-slate-400 mt-2">הקריקטורה מתוך השאלה</p>
+                      <p className="text-xs text-slate-400 mt-2">התמונה מתוך השאלה</p>
                     </div>
                   )}
                   <div className="bg-indigo-50 p-6 rounded-3xl border-2 border-indigo-100">

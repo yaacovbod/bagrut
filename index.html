@@ -241,7 +241,7 @@
           })
           const result = await res.json()
           setAiFeedback(result.feedback)
-          const match = result.feedback.match(/ציון\s*(\d+)/)
+          const match = result.feedback.match(/ציון[:\s]*(\d+)/)
           if (match) setAiScore(parseInt(match[1], 10))
         } catch (e) {
           setAiFeedback("שגיאה בתקשורת עם השרת")

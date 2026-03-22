@@ -181,21 +181,28 @@
 
       const handleAnswerSelect = (index) => {
         if (showExplanation) return
+        
         if (step.require_multiple) {
           setShowErrorMsgMap(prev => ({ ...prev, [currentStep]: false }))
           let current = Array.isArray(selectedAnswer) ? selectedAnswer : []
           let next = current.includes(index) ? current.filter(i => i !== index) : [...current, index]
           setSelectedAnswers(prev => ({ ...prev, [currentStep]: next }))
-          const correctOnes = Array.isArray(step.correct_answer) ? step.correct_answer : [step.correct_answer]
+          
+          const correctOnes = Array.isArray(step.correct_answer) ? step.correct_answer.map(String) : [String(step.correct_answer)]
+          const nextStrings = next.map(String)
+          
           if (next.length === correctOnes.length) {
-            if (next.every(val => correctOnes.includes(val))) {
+            if (nextStrings.every(val => correctOnes.includes(val))) {
               setShowExplanationMap(prev => ({ ...prev, [currentStep]: true }))
             } else {
               setShowErrorMsgMap(prev => ({ ...prev, [currentStep]: true }))
             }
           }
         } else {
-          if (index === step.correct_answer) {
+          // מנגנון חסין: הופך הכל לטקסט לפני ההשוואה למניעת באגים של שיטס
+          const isCorrect = String(index) === String(step.correct_answer)
+          
+          if (isCorrect) {
             setSelectedAnswers(prev => ({ ...prev, [currentStep]: index }))
             setShowExplanationMap(prev => ({ ...prev, [currentStep]: true }))
           } else {
@@ -429,12 +436,26 @@
                   <div className="bg-[#fdfbf7] p-6 rounded-2xl border border-amber-200 shadow-inner max-h-96 overflow-y-auto">
                     <div className="whitespace-pre-line leading-loose text-lg">
                       {displayedTexts.map(t => {
-                        const isSelected = Array.isArray(selectedAnswer) ? selectedAnswer.includes(parseInt(t.id)) : selectedAnswer === parseInt(t.id)
-                        const correctOnes = Array.isArray(step.correct_answer) ? step.correct_answer : [step.correct_answer]
-                        const isCorrectSegment = correctOnes.includes(parseInt(t.id))
+                        const correctOnes = Array.isArray(step.correct_answer) ? step.correct_answer.map(String) : [String(step.correct_answer)]
+                        const isCorrectSegment = correctOnes.includes(String(t.id))
+                        const isWrong = wrongAnswers.includes(parseInt(t.id))
+                        const isSelected = Array.isArray(selectedAnswer) ? selectedAnswer.includes(parseInt(t.id)) : String(selectedAnswer) === String(t.id)
+                        
                         let spanClass = "cursor-pointer transition-colors px-1 rounded mx-0.5 "
-                        if (showExplanation) spanClass += isCorrectSegment ? "bg-green-200 font-bold" : "text-slate-400"
-                        else spanClass += isSelected ? (showErrorMsg ? (isCorrectSegment ? "bg-green-200" : "bg-red-200 line-through") : "bg-blue-200") : "hover:bg-amber-100"
+                        
+                        if (showExplanation) {
+                          spanClass += isCorrectSegment ? "bg-green-300 font-bold" : (isWrong ? "bg-red-200 line-through text-red-500 opacity-60" : "text-slate-400")
+                        } else {
+                          if (isSelected) {
+                            spanClass += showErrorMsg ? (isCorrectSegment ? "bg-green-200" : "bg-red-200 line-through") : "bg-blue-200"
+                          } else if (isWrong) {
+                            // כאן תוקנה הבעיה: הוספת משוב אדום ברור למי שלחץ תשובה שגויה
+                            spanClass += "bg-red-200 line-through text-red-600"
+                          } else {
+                            spanClass += "hover:bg-amber-100"
+                          }
+                        }
+                        
                         return <span key={t.id} onClick={() => handleAnswerSelect(parseInt(t.id))} className={spanClass}>{t.text} </span>
                       })}
                     </div>
@@ -445,9 +466,21 @@
               {step?.step_type === 'question' && (
                 <div className="space-y-4 animate-fadeIn">
                   <h2 className="text-xl font-bold text-slate-800 mb-6">{step.content}</h2>
-                  {safeOptions.map((opt, idx) => (
-                    <button key={idx} onClick={() => handleAnswerSelect(idx)} disabled={showExplanation} className={`w-full text-right p-4 rounded-2xl border-2 transition-all ${showExplanation && idx === step.correct_answer ? 'border-green-500 bg-green-50 text-green-900' : wrongAnswers.includes(idx) ? 'border-red-200 opacity-50' : 'border-slate-200 hover:border-blue-400 hover:bg-blue-50'}`}>{opt}</button>
-                  ))}
+                  {safeOptions.map((opt, idx) => {
+                    const isCorrect = String(idx) === String(step.correct_answer)
+                    const isWrong = wrongAnswers.includes(idx)
+                    
+                    let btnClass = "w-full text-right p-4 rounded-2xl border-2 transition-all "
+                    if (showExplanation && isCorrect) {
+                      btnClass += "border-green-500 bg-green-50 text-green-900 font-bold"
+                    } else if (isWrong) {
+                      btnClass += "border-red-300 bg-red-50 text-red-500 line-through opacity-70"
+                    } else {
+                      btnClass += "border-slate-200 hover:border-blue-400 hover:bg-blue-50 text-slate-700"
+                    }
+                    
+                    return <button key={idx} onClick={() => handleAnswerSelect(idx)} disabled={showExplanation} className={btnClass}>{opt}</button>
+                  })}
                   {showExplanation && <div className="bg-green-100 p-5 rounded-2xl text-green-900 flex gap-3"><CheckCircle className="shrink-0" /><p>{step.explanation}</p></div>}
                 </div>
               )}
@@ -466,7 +499,6 @@
                     </div>
                   )}
                   
-                  {/* אזור הכתיבה מופיע רק כל עוד לא ניתן משוב מהבינה */}
                   {!aiFeedback && (
                     <div className="bg-indigo-50 p-6 rounded-3xl border-2 border-indigo-100">
                       <p className="text-lg text-slate-800 font-medium leading-relaxed whitespace-pre-line">{step.content}</p>
@@ -475,13 +507,11 @@
                     </div>
                   )}
 
-                  {/* אזור המשוב מהבינה */}
                   {aiFeedback && (
                     <div className={`bg-white p-6 rounded-3xl border-2 shadow-sm animate-fadeIn ${aiScore >= 80 ? 'border-green-300' : 'border-amber-300'}`}>
                       <h3 className="text-xl font-bold mb-4 text-slate-800 flex items-center gap-2"><MessageSquare className="text-blue-500" /> משוב המורה:</h3>
                       <p className="whitespace-pre-line text-slate-700 text-lg leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">{aiFeedback}</p>
                       
-                      {/* ציון גבוה - טופס הרשמה */}
                       {aiScore >= 80 && !isSubmitted && (
                         <div className="mt-6 bg-green-50 p-5 rounded-2xl border border-green-200">
                           <h4 className="font-bold text-green-900 mb-3">ציון מעולה הכניסו פרטים לשמירה</h4>
@@ -493,7 +523,6 @@
                         </div>
                       )}
 
-                      {/* ציון נמוך - כפתור נסה שוב */}
                       {aiScore < 80 && !isSubmitted && (
                         <div className="mt-6 text-center">
                           <p className="text-amber-700 font-bold mb-3">קראו את המשוב ונסו לשפר את התשובה</p>

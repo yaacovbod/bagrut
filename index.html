@@ -14,7 +14,7 @@
       max-width: 100vw;
       font-family: 'Rubik', sans-serif;
       background: linear-gradient(rgba(255, 255, 255, 0.50), rgba(255, 255, 255, 0.50)),
-                  url('./backround.png');
+                  url('./background.png');
       background-size: cover;
       background-position: center;
       background-attachment: fixed;
@@ -77,6 +77,16 @@
           "מלחמת יום הכיפורים": []
         }
       }
+    }
+
+    // פונקציית עזר לאיפוס מצב שאלה - תיקון באג: כפתור חזור לא איפס את כל ה-state
+    const resetQuestionState = (setters) => {
+      setters.setSelectedTopic(null)
+      setters.setCurrentStep(0)
+      setters.setSelectedAnswers({})
+      setters.setShowExplanationMap({})
+      setters.setWrongAnswersMap({})
+      setters.setShowErrorMsgMap({})
     }
 
     const BagrutLomda = () => {
@@ -199,7 +209,6 @@
             }
           }
         } else {
-          // מנגנון חסין: הופך הכל לטקסט לפני ההשוואה למניעת באגים של שיטס
           const isCorrect = String(index) === String(step.correct_answer)
           
           if (isCorrect) {
@@ -224,6 +233,7 @@
         try {
           const res = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
               action: 'grade_essay', 
               prompt: prompt,
@@ -253,6 +263,7 @@
           await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               topic_id: selectedTopic,
               studentName: studentName,
@@ -269,6 +280,8 @@
             setCurrentStep(0)
             setSelectedAnswers({})
             setShowExplanationMap({})
+            setWrongAnswersMap({})      // תיקון באג: חסר באיפוס
+            setShowErrorMsgMap({})     // תיקון באג: חסר באיפוס
             setUserEssay('')
             setAiFeedback('')
             setAiScore(null)
@@ -417,7 +430,15 @@
         <div className="min-h-screen py-4 px-2 sm:px-4 animate-fadeIn text-right" dir="rtl">
           <div className="max-w-3xl mx-auto bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl overflow-hidden border border-slate-100 relative">
             <div className="bg-blue-600 text-white p-4 md:p-6 flex items-center justify-between">
-              <button onClick={() => setSelectedTopic(null)} className="p-2 hover:bg-blue-700 rounded-lg transition-colors"><ArrowRight className="w-6 h-6" /></button>
+              {/* תיקון באג: כפתור חזור עכשיו מאפס את כל ה-state */}
+              <button onClick={() => {
+                setSelectedTopic(null)
+                setCurrentStep(0)
+                setSelectedAnswers({})
+                setShowExplanationMap({})
+                setWrongAnswersMap({})
+                setShowErrorMsgMap({})
+              }} className="p-2 hover:bg-blue-700 rounded-lg transition-colors"><ArrowRight className="w-6 h-6" /></button>
               <div className="text-center"><h1 className="text-lg md:text-xl font-bold">{step?.title}</h1><p className="text-blue-100 text-xs">{step?.subtitle}</p></div>
               <div className="bg-blue-700 px-3 py-1 rounded-lg text-xs font-bold">{currentStep + 1} / {currentSteps.length}</div>
             </div>
@@ -449,7 +470,6 @@
                           if (isSelected) {
                             spanClass += showErrorMsg ? (isCorrectSegment ? "bg-green-200" : "bg-red-200 line-through") : "bg-blue-200"
                           } else if (isWrong) {
-                            // כאן תוקנה הבעיה: הוספת משוב אדום ברור למי שלחץ תשובה שגויה
                             spanClass += "bg-red-200 line-through text-red-600"
                           } else {
                             spanClass += "hover:bg-amber-100"
@@ -508,11 +528,11 @@
                   )}
 
                   {aiFeedback && (
-                    <div className={`bg-white p-6 rounded-3xl border-2 shadow-sm animate-fadeIn ${aiScore >= 80 ? 'border-green-300' : 'border-amber-300'}`}>
+                    <div className={`bg-white p-6 rounded-3xl border-2 shadow-sm animate-fadeIn ${aiScore !== null && aiScore >= 80 ? 'border-green-300' : 'border-amber-300'}`}>
                       <h3 className="text-xl font-bold mb-4 text-slate-800 flex items-center gap-2"><MessageSquare className="text-blue-500" /> משוב המורה:</h3>
                       <p className="whitespace-pre-line text-slate-700 text-lg leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">{aiFeedback}</p>
                       
-                      {aiScore >= 80 && !isSubmitted && (
+                      {aiScore !== null && aiScore >= 80 && !isSubmitted && (
                         <div className="mt-6 bg-green-50 p-5 rounded-2xl border border-green-200">
                           <h4 className="font-bold text-green-900 mb-3">ציון מעולה הכניסו פרטים לשמירה</h4>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
@@ -523,7 +543,8 @@
                         </div>
                       )}
 
-                      {aiScore < 80 && !isSubmitted && (
+                      {/* תיקון באג: הוסף בדיקה שaiScore !== null לפני ההשוואה */}
+                      {aiScore !== null && aiScore < 80 && !isSubmitted && (
                         <div className="mt-6 text-center">
                           <p className="text-amber-700 font-bold mb-3">קראו את המשוב ונסו לשפר את התשובה</p>
                           <button onClick={handleTryAgain} className="bg-amber-500 text-white font-bold py-3 px-8 rounded-xl shadow-md hover:bg-amber-600 transition-all flex items-center justify-center gap-2 mx-auto">

@@ -450,8 +450,7 @@
                       {currentTexts.map(t => {
                         const isHeader = typeof t.text === 'string' && t.text.startsWith('מקור')
                         if (isHeader) return (
-                          <div key={t.id} className="mt-6 mb-2 first:mt-0">
-                            <hr className="border-amber-300 mb-3" />
+                          <div key={t.id} className="mt-6 mb-3 first:mt-0 px-3 py-2 bg-amber-100 border border-amber-300 rounded-xl">
                             <p className="font-bold text-amber-900 text-base">{t.text}</p>
                           </div>
                         )

@@ -446,7 +446,18 @@
                 <div className="space-y-6 animate-fadeIn">
                   <div className="bg-blue-50 p-5 rounded-2xl text-blue-900 leading-relaxed font-medium">{step.content}</div>
                   <div className="bg-[#fdfbf7] p-6 rounded-2xl border border-amber-200 shadow-inner max-h-96 overflow-y-auto">
-                    <div className="whitespace-pre-line leading-loose text-lg text-slate-800">{currentTexts.map(t => <span key={t.id}>{t.text} </span>)}</div>
+                    <div className="leading-loose text-lg text-slate-800">
+                      {currentTexts.map(t => {
+                        const isHeader = typeof t.text === 'string' && t.text.startsWith('מקור')
+                        if (isHeader) return (
+                          <div key={t.id} className="mt-6 mb-2 first:mt-0">
+                            <hr className="border-amber-300 mb-3" />
+                            <p className="font-bold text-amber-900 text-base">{t.text}</p>
+                          </div>
+                        )
+                        return <span key={t.id}>{t.text} </span>
+                      })}
+                    </div>
                   </div>
                 </div>
               )}

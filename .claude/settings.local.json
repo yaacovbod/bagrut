@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)",
+      "Bash(unzip -p World-War-II-Holocaust-open-book.docx word/document.xml)"
+    ]
+  }
+}

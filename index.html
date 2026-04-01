@@ -465,8 +465,14 @@
                 <div className="space-y-6 animate-fadeIn">
                   <h2 className="text-xl font-bold text-center text-slate-800">{step.content}</h2>
                   <div className="bg-[#fdfbf7] p-6 rounded-2xl border border-amber-200 shadow-inner max-h-96 overflow-y-auto">
-                    <div className="whitespace-pre-line leading-loose text-lg">
+                    <div className="leading-loose text-lg">
                       {displayedTexts.map(t => {
+                        const isHeader = typeof t.text === 'string' && t.text.startsWith('מקור')
+                        if (isHeader) return (
+                          <div key={t.id} className="mt-6 mb-3 first:mt-0 px-3 py-2 bg-amber-100 border border-amber-300 rounded-xl">
+                            <p className="font-bold text-amber-900 text-base">{t.text}</p>
+                          </div>
+                        )
                         const correctOnes = Array.isArray(step.correct_answer) ? step.correct_answer.map(String) : [String(step.correct_answer)]
                         const isCorrectSegment = correctOnes.includes(String(t.id))
                         const isWrong = wrongAnswers.includes(parseInt(t.id))

@@ -52,32 +52,6 @@
 
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyYYG_UeQY4eaoDcXe7eaHdC71k9HPi-mgZF09s4Yl6MCsXIkqnJFkLX0UWE3ecWGg/exec"
 
-    const DASHBOARD_STRUCTURE = {
-      "השואה": {
-        subcategories: {
-          "מבוא ומושגי יסוד": [],
-          "הגטאות": [],
-          "הפתרון הסופי": []
-        }
-      },
-      "סוגיות": {
-        subcategories: {
-          "תהליך הדה קולוניזציה וגורל היהודים בארצות האסלאם": [
-            { id: "deco_q1", title: "שאלה 1" },
-            { id: "deco_q2", title: "שאלה 2" },
-            { id: "deco_q3", title: "שאלה 3" },
-            { id: "deco_q4", title: "שאלה 4" },
-            { id: "deco_q5", title: "שאלה 5" },
-            { id: "deco_q6", title: "שאלה 6" }
-          ],
-          "העליות בשנות ה50 וה60": [
-            { id: "olim_q1", title: "שאלה 1" },
-            { id: "olim_q2", title: "שאלה 2" }
-          ],
-          "מלחמת יום הכיפורים": []
-        }
-      }
-    }
 
     // פונקציית עזר לאיפוס מצב שאלה - תיקון באג: כפתור חזור לא איפס את כל ה-state
     const resetQuestionState = (setters) => {
@@ -123,7 +97,7 @@
             const response = await fetch(GOOGLE_SCRIPT_URL)
             const data = await response.json()
             setAllData(data)
-            
+
             if (data.accessKey) {
               setSitePassword(data.accessKey.toString())
               const savedPass = localStorage.getItem('bagrut_site_password')
@@ -142,6 +116,24 @@
         }
         fetchData()
       }, [])
+
+      const dashboardStructure = useMemo(() => {
+        if (!Array.isArray(allData.questions) || !allData.questions.length) return {}
+        const structure = {}
+        const seen = new Set()
+        allData.questions.forEach(q => {
+          if (!q.category || !q.subcategory || !q.topic_id) return
+          if (!structure[q.category]) structure[q.category] = { subcategories: {} }
+          if (!structure[q.category].subcategories[q.subcategory])
+            structure[q.category].subcategories[q.subcategory] = []
+          const key = `${q.category}|${q.subcategory}|${q.topic_id}`
+          if (!seen.has(key)) {
+            seen.add(key)
+            structure[q.category].subcategories[q.subcategory].push({ id: q.topic_id, title: q.title })
+          }
+        })
+        return structure
+      }, [allData.questions])
 
       const currentSteps = useMemo(() => {
         if (!selectedTopic || !Array.isArray(allData.questions)) return []
@@ -354,7 +346,7 @@
                 <p className="text-slate-800 font-medium bg-white/50 inline-block px-4 py-1 rounded-full">בחרו קטגוריה כדי להתחיל</p>
               </header>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {Object.keys(DASHBOARD_STRUCTURE).map(cat => (
+                {Object.keys(dashboardStructure).map(cat => (
                   <button key={cat} onClick={() => setSelectedCategory(cat)} className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-blue-500 hover:shadow-md transition-all text-right group flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <div className="bg-blue-100 p-3 rounded-xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
@@ -380,7 +372,7 @@
               </button>
               <h2 className="text-2xl font-bold text-slate-800 mb-6 drop-shadow-sm">{selectedCategory} רשימת נושאים</h2>
               <div className="grid grid-cols-1 gap-4">
-                {Object.keys(DASHBOARD_STRUCTURE[selectedCategory].subcategories).map(sub => (
+                {Object.keys(dashboardStructure[selectedCategory]?.subcategories || {}).map(sub => (
                   <button key={sub} onClick={() => setSelectedSubcategory(sub)} className="bg-white/90 backdrop-blur-sm p-5 rounded-2xl shadow-sm border border-slate-200 hover:border-blue-500 transition-all text-right group flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <div className="bg-slate-100 p-2 rounded-lg text-slate-500 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors"><Folder className="w-5 h-5" /></div>
@@ -396,7 +388,7 @@
       }
 
       if (!selectedTopic) {
-        const questionsList = DASHBOARD_STRUCTURE[selectedCategory].subcategories[selectedSubcategory]
+        const questionsList = dashboardStructure[selectedCategory]?.subcategories?.[selectedSubcategory] || []
         return (
           <div className="min-h-screen p-4 md:p-8 animate-fadeIn text-right" dir="rtl">
             <div className="max-w-4xl mx-auto">

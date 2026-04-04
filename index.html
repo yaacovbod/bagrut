@@ -20,11 +20,11 @@
       background-attachment: fixed;
       background-repeat: no-repeat;
     }
-    
+
     #root > div {
       background-color: transparent !important;
     }
-    
+
     .animate-fadeIn { animation: fadeIn 0.4s ease-out; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   </style>
@@ -44,16 +44,14 @@
   <script type="text/babel" data-type="module">
     import React, { useState, useEffect, useMemo } from 'react'
     import { createRoot } from 'react-dom/client'
-    import { 
-      BookOpen, CheckCircle, XCircle, ArrowLeft, ArrowRight, 
-      Award, FileText, Sparkles, Loader2, MessageSquare, 
-      LayoutDashboard, ChevronLeft, Folder, Bookmark, Lock, RotateCcw
+    import {
+      BookOpen, CheckCircle, XCircle, ArrowLeft, ArrowRight,
+      Award, FileText, Sparkles, Loader2, MessageSquare,
+      LayoutDashboard, ChevronLeft, Folder, Bookmark, Lock, RotateCcw,
+      ShieldCheck, LogOut, Users, Calendar, Star
     } from 'lucide-react'
 
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyYYG_UeQY4eaoDcXe7eaHdC71k9HPi-mgZF09s4Yl6MCsXIkqnJFkLX0UWE3ecWGg/exec"
-
-
-    // פונקציית עזר לאיפוס מצב שאלה - תיקון באג: כפתור חזור לא איפס את כל ה-state
+    // פונקציית עזר לאיפוס מצב שאלה
     const resetQuestionState = (setters) => {
       setters.setSelectedTopic(null)
       setters.setCurrentStep(0)
@@ -63,19 +61,156 @@
       setters.setShowErrorMsgMap({})
     }
 
+    // ---- Admin Panel ----
+    const AdminPanel = ({ onLogout }) => {
+      const [adminPassword, setAdminPassword] = useState('')
+      const [isAuthenticated, setIsAuthenticated] = useState(false)
+      const [loginError, setLoginError] = useState(false)
+      const [grades, setGrades] = useState([])
+      const [isLoading, setIsLoading] = useState(false)
+      const [loadError, setLoadError] = useState('')
+
+      const handleAdminLogin = async (e) => {
+        e.preventDefault()
+        setIsLoading(true)
+        setLoginError(false)
+        try {
+          const res = await fetch('/api/grades', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ adminPassword })
+          })
+          if (res.status === 401) { setLoginError(true); setIsLoading(false); return }
+          const data = await res.json()
+          setGrades(data)
+          setIsAuthenticated(true)
+        } catch (e) {
+          setLoadError('שגיאה בטעינת ציונים')
+        }
+        setIsLoading(false)
+      }
+
+      if (!isAuthenticated) {
+        return (
+          <div className="min-h-screen flex flex-col items-center justify-center p-4 animate-fadeIn" dir="rtl">
+            <div className="bg-white p-8 rounded-3xl shadow-lg max-w-md w-full border border-slate-100">
+              <div className="text-center mb-6">
+                <div className="inline-block p-4 bg-indigo-100 rounded-full mb-4">
+                  <ShieldCheck className="w-8 h-8 text-indigo-600" />
+                </div>
+                <h1 className="text-2xl font-bold text-slate-800">כניסת מנהל</h1>
+                <p className="text-slate-500 mt-2 text-sm">הכניסו את סיסמת המנהל לצפייה בציונים</p>
+              </div>
+              <form onSubmit={handleAdminLogin} className="space-y-4">
+                <input
+                  type="password"
+                  value={adminPassword}
+                  onChange={(e) => setAdminPassword(e.target.value)}
+                  placeholder="סיסמת מנהל"
+                  className="w-full p-4 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none text-center text-lg font-sans"
+                />
+                {loginError && <p className="text-red-500 text-sm text-center font-bold">סיסמה שגויה</p>}
+                {loadError && <p className="text-red-500 text-sm text-center">{loadError}</p>}
+                <button
+                  type="submit"
+                  disabled={isLoading || !adminPassword.trim()}
+                  className="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl hover:bg-indigo-700 transition-all shadow-md disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isLoading ? <Loader2 className="animate-spin" /> : <ShieldCheck className="w-5 h-5" />}
+                  {isLoading ? 'מתחבר...' : 'כניסה'}
+                </button>
+                <button type="button" onClick={onLogout} className="w-full text-slate-400 text-sm hover:text-slate-600 transition-colors">
+                  חזרה לדשבורד תלמידים
+                </button>
+              </form>
+            </div>
+          </div>
+        )
+      }
+
+      return (
+        <div className="min-h-screen p-4 md:p-8 animate-fadeIn" dir="rtl">
+          <div className="max-w-6xl mx-auto">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
+                <div className="bg-indigo-100 p-3 rounded-2xl">
+                  <ShieldCheck className="w-6 h-6 text-indigo-600" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-slate-800">פאנל מנהל</h1>
+                  <p className="text-slate-500 text-sm">{grades.length} ציונים שנשמרו</p>
+                </div>
+              </div>
+              <button
+                onClick={onLogout}
+                className="flex items-center gap-2 bg-white text-slate-600 font-bold px-4 py-2 rounded-xl border border-slate-200 hover:border-red-300 hover:text-red-600 transition-all"
+              >
+                <LogOut className="w-4 h-4" /> יציאה
+              </button>
+            </div>
+
+            {grades.length === 0 ? (
+              <div className="bg-white rounded-3xl p-12 text-center border border-slate-100 shadow-sm">
+                <Users className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                <p className="text-slate-500 font-bold text-lg">עדיין אין ציונים שמורים</p>
+              </div>
+            ) : (
+              <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-right">
+                    <thead className="bg-slate-50 border-b border-slate-100">
+                      <tr>
+                        {['תאריך', 'שם תלמיד', 'כיתה', 'נושא', 'ציון', 'חיבור', 'משוב AI'].map(h => (
+                          <th key={h} className="px-4 py-3 text-xs font-bold text-slate-500 uppercase">{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50">
+                      {grades.map((g, i) => (
+                        <tr key={g.id || i} className="hover:bg-slate-50 transition-colors">
+                          <td className="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">
+                            {new Date(g.created_at).toLocaleDateString('he-IL')}
+                          </td>
+                          <td className="px-4 py-3 font-bold text-slate-800">{g.student_name}</td>
+                          <td className="px-4 py-3 text-slate-600">{g.student_class}</td>
+                          <td className="px-4 py-3 text-slate-600 text-sm">{g.topic_id}</td>
+                          <td className="px-4 py-3">
+                            <span className={`inline-block px-3 py-1 rounded-full text-sm font-bold ${
+                              g.score >= 80 ? 'bg-green-100 text-green-700' :
+                              g.score >= 60 ? 'bg-amber-100 text-amber-700' :
+                              'bg-red-100 text-red-600'
+                            }`}>{g.score}</span>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-slate-600 max-w-xs truncate">{g.essay}</td>
+                          <td className="px-4 py-3 text-sm text-slate-500 max-w-xs truncate">{g.feedback}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )
+    }
+
+    // ---- Main App ----
     const BagrutLomda = () => {
       const [allData, setAllData] = useState({ questions: [], texts: {} })
       const [isLoading, setIsLoading] = useState(true)
-      
+
       const [sitePassword, setSitePassword] = useState(null)
       const [isAuthenticated, setIsAuthenticated] = useState(false)
       const [passwordInput, setPasswordInput] = useState('')
       const [passwordError, setPasswordError] = useState(false)
 
+      const [isAdminMode, setIsAdminMode] = useState(false)
+
       const [selectedCategory, setSelectedCategory] = useState(null)
       const [selectedSubcategory, setSelectedSubcategory] = useState(null)
       const [selectedTopic, setSelectedTopic] = useState(null)
-      
+
       const [currentStep, setCurrentStep] = useState(0)
       const [selectedAnswers, setSelectedAnswers] = useState({})
       const [showExplanationMap, setShowExplanationMap] = useState({})
@@ -94,25 +229,38 @@
       useEffect(() => {
         const fetchData = async () => {
           try {
-            const response = await fetch(GOOGLE_SCRIPT_URL)
-            const data = await response.json()
-            setAllData(data)
+            const [qRes, tRes] = await Promise.all([
+              fetch('./data/questions.json'),
+              fetch('./data/texts.json')
+            ])
+            const questions = await qRes.json()
+            const texts = await tRes.json()
 
-            if (data.accessKey) {
-              setSitePassword(data.accessKey.toString())
+            // accessKey — אם קיים, מגיע מ-config.json (אופציונלי)
+            let accessKey = null
+            try {
+              const cRes = await fetch('./data/config.json')
+              if (cRes.ok) {
+                const config = await cRes.json()
+                accessKey = config.accessKey || null
+              }
+            } catch (_) {}
+
+            setAllData({ questions, texts })
+
+            if (accessKey) {
+              setSitePassword(accessKey.toString())
               const savedPass = localStorage.getItem('bagrut_site_password')
-              if (savedPass && savedPass === data.accessKey.toString()) {
+              if (savedPass && savedPass === accessKey.toString()) {
                 setIsAuthenticated(true)
               }
             } else {
               setIsAuthenticated(true)
             }
-            
-            setIsLoading(false)
           } catch (error) {
-            console.error("שגיאה בטעינת נתונים", error)
-            setIsLoading(false)
+            console.error('שגיאה בטעינת נתונים', error)
           }
+          setIsLoading(false)
         }
         fetchData()
       }, [])
@@ -183,34 +331,32 @@
 
       const handleAnswerSelect = (index) => {
         if (showExplanation) return
-        
+
         if (step.require_multiple) {
           setShowErrorMsgMap(prev => ({ ...prev, [currentStep]: false }))
           let current = Array.isArray(selectedAnswer) ? selectedAnswer : []
           let next = current.includes(index) ? current.filter(i => i !== index) : [...current, index]
           setSelectedAnswers(prev => ({ ...prev, [currentStep]: next }))
-          
+
           const correctOnes = Array.isArray(step.correct_answer) ? step.correct_answer.map(String) : [String(step.correct_answer)]
           const nextStrings = next.map(String)
-          
-         if (next.length === correctOnes.length) {
-  if (nextStrings.every(val => correctOnes.includes(val))) {
-    setShowExplanationMap(prev => ({ ...prev, [currentStep]: true }))
-  } else {
-    const wrongOnes = next.filter(val => !correctOnes.includes(String(val)))
-    const rightOnes = next.filter(val => correctOnes.includes(String(val)))
-    setWrongAnswersMap(prev => ({
-      ...prev,
-      [currentStep]: [...(prev[currentStep] || []), ...wrongOnes]
-    }))
-    // שמור רק את הנכונים בסלקשן — אם שניהם שגויים זה מאפס הכל
-    setSelectedAnswers(prev => ({ ...prev, [currentStep]: rightOnes }))
-    setShowErrorMsgMap(prev => ({ ...prev, [currentStep]: true }))
-  }
-}
+
+          if (next.length === correctOnes.length) {
+            if (nextStrings.every(val => correctOnes.includes(val))) {
+              setShowExplanationMap(prev => ({ ...prev, [currentStep]: true }))
+            } else {
+              const wrongOnes = next.filter(val => !correctOnes.includes(String(val)))
+              const rightOnes = next.filter(val => correctOnes.includes(String(val)))
+              setWrongAnswersMap(prev => ({
+                ...prev,
+                [currentStep]: [...(prev[currentStep] || []), ...wrongOnes]
+              }))
+              setSelectedAnswers(prev => ({ ...prev, [currentStep]: rightOnes }))
+              setShowErrorMsgMap(prev => ({ ...prev, [currentStep]: true }))
+            }
+          }
         } else {
           const isCorrect = String(index) === String(step.correct_answer)
-          
           if (isCorrect) {
             setSelectedAnswers(prev => ({ ...prev, [currentStep]: index }))
             setShowExplanationMap(prev => ({ ...prev, [currentStep]: true }))
@@ -223,28 +369,24 @@
       const handleGradeEssay = async () => {
         if (!userEssay.trim()) return
         setIsGrading(true)
-        
+
         let prompt = `השאלה ${step.content}\nתשובת התלמיד ${userEssay}`
-        
         if (step.reference_answer) {
           prompt += `\n\nשים לב מדובר בשאלה עם מחוון ספציפי למורה עליך לתת את הציון אך ורק על סמך אזכור הנקודות הבאות מתוך המחוון \n${step.reference_answer}`
         }
 
         try {
-          const res = await fetch(GOOGLE_SCRIPT_URL, {
+          const res = await fetch('/api/grade', {
             method: 'POST',
-            body: JSON.stringify({ 
-              action: 'grade_essay', 
-              prompt: prompt,
-              password: sitePassword
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt })
           })
           const result = await res.json()
           setAiFeedback(result.feedback)
           const match = result.feedback.match(/ציון[:\s]*(\d+)/)
           if (match) setAiScore(parseInt(match[1], 10))
         } catch (e) {
-          setAiFeedback("שגיאה בתקשורת עם השרת")
+          setAiFeedback('שגיאה בתקשורת עם השרת')
         }
         setIsGrading(false)
       }
@@ -259,18 +401,16 @@
         if (!studentName.trim()) return
         setIsSubmittingGrade(true)
         try {
-          await fetch(GOOGLE_SCRIPT_URL, {
+          await fetch('/api/save-grade', {
             method: 'POST',
-            mode: 'no-cors',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               topic_id: selectedTopic,
-              studentName: studentName,
-              studentClass: studentClass,
+              studentName,
+              studentClass,
               score: aiScore,
               essay: userEssay,
-              feedback: aiFeedback,
-              password: sitePassword
+              feedback: aiFeedback
             })
           })
           setIsSubmitted(true)
@@ -279,8 +419,8 @@
             setCurrentStep(0)
             setSelectedAnswers({})
             setShowExplanationMap({})
-            setWrongAnswersMap({})      // תיקון באג: חסר באיפוס
-            setShowErrorMsgMap({})     // תיקון באג: חסר באיפוס
+            setWrongAnswersMap({})
+            setShowErrorMsgMap({})
             setUserEssay('')
             setAiFeedback('')
             setAiScore(null)
@@ -293,11 +433,16 @@
         }
       }
 
+      // --- Admin mode ---
+      if (isAdminMode) {
+        return <AdminPanel onLogout={() => setIsAdminMode(false)} />
+      }
+
       if (isLoading) {
         return (
           <div className="min-h-screen flex flex-col items-center justify-center p-4">
             <Loader2 className="w-12 h-12 text-blue-600 animate-spin mb-4" />
-            <p className="text-xl font-bold text-slate-700">טוען נתונים מהמערכת</p>
+            <p className="text-xl font-bold text-slate-700">טוען נתונים</p>
           </div>
         )
       }
@@ -314,21 +459,29 @@
                 <p className="text-slate-500 mt-2">הקלידו את הסיסמה שקיבלתם מהמורה</p>
               </div>
               <form onSubmit={handleLoginSubmit} className="space-y-4">
-                <input 
-                  type="password" 
+                <input
+                  type="password"
                   value={passwordInput}
                   onChange={(e) => setPasswordInput(e.target.value)}
                   placeholder="סיסמת גישה"
                   className="w-full p-4 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none text-center text-lg font-sans"
                 />
                 {passwordError && <p className="text-red-500 text-sm text-center font-bold">הסיסמה שגויה נסו שוב</p>}
-                <button 
+                <button
                   type="submit"
                   className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl hover:bg-blue-700 transition-all shadow-md"
                 >
                   היכנסו לדשבורד
                 </button>
               </form>
+              <div className="mt-6 text-center">
+                <button
+                  onClick={() => setIsAdminMode(true)}
+                  className="text-xs text-slate-300 hover:text-slate-500 transition-colors"
+                >
+                  כניסת מנהל
+                </button>
+              </div>
             </div>
           </div>
         )
@@ -358,6 +511,14 @@
                   </button>
                 ))}
               </div>
+              <div className="mt-10 text-center">
+                <button
+                  onClick={() => setIsAdminMode(true)}
+                  className="text-xs text-slate-300 hover:text-slate-500 transition-colors"
+                >
+                  כניסת מנהל
+                </button>
+              </div>
             </div>
           </div>
         )
@@ -370,7 +531,7 @@
               <button onClick={() => setSelectedCategory(null)} className="bg-white/80 backdrop-blur-sm text-slate-700 hover:text-blue-600 flex items-center gap-2 mb-6 font-bold py-2 px-4 rounded-xl transition-colors inline-flex">
                 <ArrowRight className="w-5 h-5" /> חזרה לקטגוריות
               </button>
-              <h2 className="text-2xl font-bold text-slate-800 mb-6 drop-shadow-sm">{selectedCategory} רשימת נושאים</h2>
+              <h2 className="text-2xl font-bold text-slate-800 mb-6 drop-shadow-sm">{selectedCategory} — רשימת נושאים</h2>
               <div className="grid grid-cols-1 gap-4">
                 {Object.keys(dashboardStructure[selectedCategory]?.subcategories || {}).map(sub => (
                   <button key={sub} onClick={() => setSelectedSubcategory(sub)} className="bg-white/90 backdrop-blur-sm p-5 rounded-2xl shadow-sm border border-slate-200 hover:border-blue-500 transition-all text-right group flex items-center justify-between">
@@ -418,7 +579,6 @@
             <div className="bg-white p-8 rounded-3xl shadow-lg border border-red-200 max-w-lg w-full text-center">
               <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
               <h2 className="text-2xl font-bold text-slate-800 mb-2">אין שאלות לנושא זה</h2>
-              <p className="text-slate-600 mb-6">נראה שאין עדיין שאלות בגיליון עבור מזהה הנושא שבחרת או שיש שגיאת כתיב קטנה בגיליון.</p>
               <button onClick={() => setSelectedTopic(null)} className="bg-blue-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-blue-700 transition-colors">חזרה לדשבורד</button>
             </div>
           </div>
@@ -429,7 +589,6 @@
         <div className="min-h-screen py-4 px-2 sm:px-4 animate-fadeIn text-right" dir="rtl">
           <div className="max-w-3xl mx-auto bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl overflow-hidden border border-slate-100 relative">
             <div className="bg-blue-600 text-white p-4 md:p-6 flex items-center justify-between">
-              {/* תיקון באג: כפתור חזור עכשיו מאפס את כל ה-state */}
               <button onClick={() => {
                 setSelectedTopic(null)
                 setCurrentStep(0)
@@ -476,9 +635,8 @@
                         const isCorrectSegment = correctOnes.includes(String(t.id))
                         const isWrong = wrongAnswers.includes(parseInt(t.id))
                         const isSelected = Array.isArray(selectedAnswer) ? selectedAnswer.includes(parseInt(t.id)) : String(selectedAnswer) === String(t.id)
-                        
+
                         let spanClass = "cursor-pointer transition-colors px-1 rounded mx-0.5 "
-                        
                         if (showExplanation) {
                           spanClass += isCorrectSegment ? "bg-green-300 font-bold" : (isWrong ? "bg-red-200 line-through text-red-500 opacity-60" : "text-slate-400")
                         } else {
@@ -490,7 +648,6 @@
                             spanClass += "hover:bg-amber-100"
                           }
                         }
-                        
                         return <span key={t.id} onClick={() => handleAnswerSelect(parseInt(t.id))} className={spanClass}>{t.text} </span>
                       })}
                     </div>
@@ -504,7 +661,6 @@
                   {safeOptions.map((opt, idx) => {
                     const isCorrect = String(idx) === String(step.correct_answer)
                     const isWrong = wrongAnswers.includes(idx)
-                    
                     let btnClass = "w-full text-right p-4 rounded-2xl border-2 transition-all "
                     if (showExplanation && isCorrect) {
                       btnClass += "border-green-500 bg-green-50 text-green-900 font-bold"
@@ -513,7 +669,6 @@
                     } else {
                       btnClass += "border-slate-200 hover:border-blue-400 hover:bg-blue-50 text-slate-700"
                     }
-                    
                     return <button key={idx} onClick={() => handleAnswerSelect(idx)} disabled={showExplanation} className={btnClass}>{opt}</button>
                   })}
                   {showExplanation && <div className="bg-green-100 p-5 rounded-2xl text-green-900 flex gap-3"><CheckCircle className="shrink-0" /><p>{step.explanation}</p></div>}
@@ -533,32 +688,27 @@
                       <p className="text-xs text-slate-400 mt-2">התמונה מתוך השאלה</p>
                     </div>
                   )}
-                  
                   {!aiFeedback && (
                     <div className="bg-indigo-50 p-6 rounded-3xl border-2 border-indigo-100">
                       <p className="text-lg text-slate-800 font-medium leading-relaxed whitespace-pre-line">{step.content}</p>
                       <textarea value={userEssay} onChange={(e) => setUserEssay(e.target.value)} className="w-full h-44 p-5 mt-5 rounded-2xl border-none shadow-inner focus:ring-2 focus:ring-indigo-500 outline-none text-slate-700" placeholder="כתבו כאן את התשובה המפורטת שלכם" />
-                      <button onClick={handleGradeEssay} disabled={isGrading || !userEssay.trim()} className="w-full mt-5 bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-indigo-700 transition-all flex items-center justify-center gap-3">{isGrading ? <Loader2 className="animate-spin" /> : <Sparkles />}{isGrading ? 'המורה בודק' : 'שלח לבדיקת בינה מלאכותית'}</button>
+                      <button onClick={handleGradeEssay} disabled={isGrading || !userEssay.trim()} className="w-full mt-5 bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-indigo-700 transition-all flex items-center justify-center gap-3 disabled:opacity-50">{isGrading ? <Loader2 className="animate-spin" /> : <Sparkles />}{isGrading ? 'המורה בודק...' : 'שלח לבדיקת בינה מלאכותית'}</button>
                     </div>
                   )}
-
                   {aiFeedback && (
                     <div className={`bg-white p-6 rounded-3xl border-2 shadow-sm animate-fadeIn ${aiScore !== null && aiScore >= 80 ? 'border-green-300' : 'border-amber-300'}`}>
                       <h3 className="text-xl font-bold mb-4 text-slate-800 flex items-center gap-2"><MessageSquare className="text-blue-500" /> משוב המורה:</h3>
                       <p className="whitespace-pre-line text-slate-700 text-lg leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">{aiFeedback}</p>
-                      
                       {aiScore !== null && aiScore >= 80 && !isSubmitted && (
                         <div className="mt-6 bg-green-50 p-5 rounded-2xl border border-green-200">
-                          <h4 className="font-bold text-green-900 mb-3">ציון מעולה הכניסו פרטים לשמירה</h4>
+                          <h4 className="font-bold text-green-900 mb-3">ציון מעולה! הכניסו פרטים לשמירה</h4>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                             <input type="text" placeholder="שם מלא" value={studentName} onChange={e => setStudentName(e.target.value)} className="p-3 rounded-xl border border-green-300" />
                             <input type="text" placeholder="כיתה" value={studentClass} onChange={e => setStudentClass(e.target.value)} className="p-3 rounded-xl border border-green-300" />
                           </div>
-                          <button onClick={handleSubmitGrade} disabled={!studentName.trim() || isSubmittingGrade} className="w-full bg-green-600 text-white font-bold py-3 rounded-xl">{isSubmittingGrade ? 'שומר' : 'שלח ציון למורה'}</button>
+                          <button onClick={handleSubmitGrade} disabled={!studentName.trim() || isSubmittingGrade} className="w-full bg-green-600 text-white font-bold py-3 rounded-xl disabled:opacity-50">{isSubmittingGrade ? 'שומר...' : 'שלח ציון למורה'}</button>
                         </div>
                       )}
-
-                      {/* תיקון באג: הוסף בדיקה שaiScore !== null לפני ההשוואה */}
                       {aiScore !== null && aiScore < 80 && !isSubmitted && (
                         <div className="mt-6 text-center">
                           <p className="text-amber-700 font-bold mb-3">קראו את המשוב ונסו לשפר את התשובה</p>
@@ -567,8 +717,7 @@
                           </button>
                         </div>
                       )}
-
-                      {isSubmitted && <div className="mt-6 bg-blue-50 p-5 rounded-2xl text-blue-900 font-bold text-center"><CheckCircle className="w-10 h-10 mx-auto text-blue-500 mb-2" />הציון נשמר בהצלחה חוזר לדשבורד</div>}
+                      {isSubmitted && <div className="mt-6 bg-blue-50 p-5 rounded-2xl text-blue-900 font-bold text-center"><CheckCircle className="w-10 h-10 mx-auto text-blue-500 mb-2" />הציון נשמר בהצלחה — חוזר לדשבורד</div>}
                     </div>
                   )}
                 </div>

@@ -42,7 +42,7 @@
 <body class="overflow-x-hidden">
   <div id="root"></div>
   <script type="text/babel" data-type="module">
-    import React, { useState, useEffect, useMemo } from 'react'
+    import React, { useState, useEffect, useMemo, useRef } from 'react'
     import { createRoot } from 'react-dom/client'
     import {
       BookOpen, CheckCircle, XCircle, ArrowLeft, ArrowRight,
@@ -61,72 +61,105 @@
       setters.setShowErrorMsgMap({})
     }
 
-    // ---- Admin Panel ----
-    const AdminPanel = ({ onLogout }) => {
-      const [adminPassword, setAdminPassword] = useState('')
-      const [isAuthenticated, setIsAuthenticated] = useState(false)
-      const [loginError, setLoginError] = useState(false)
+    // ---- Admin Panel (Clerk) ----
+    const AdminPanel = ({ clerkPublishableKey, onLogout }) => {
+      const [clerk, setClerk] = useState(null)
+      const [isSignedIn, setIsSignedIn] = useState(false)
       const [grades, setGrades] = useState([])
-      const [isLoading, setIsLoading] = useState(false)
-      const [loadError, setLoadError] = useState('')
+      const [isLoading, setIsLoading] = useState(true)
+      const [error, setError] = useState('')
+      const mountRef = useRef(null)
 
-      const handleAdminLogin = async (e) => {
-        e.preventDefault()
+      const loadGrades = async (clerkInstance) => {
         setIsLoading(true)
-        setLoginError(false)
         try {
+          const token = await clerkInstance.session.getToken()
           const res = await fetch('/api/grades', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ adminPassword })
+            headers: { 'Authorization': `Bearer ${token}` }
           })
-          if (res.status === 401) { setLoginError(true); setIsLoading(false); return }
           const data = await res.json()
-          setGrades(data)
-          setIsAuthenticated(true)
+          if (res.ok) setGrades(data)
+          else setError(data.error || 'שגיאה בטעינת ציונים')
         } catch (e) {
-          setLoadError('שגיאה בטעינת ציונים')
+          setError('שגיאה בטעינת ציונים')
         }
         setIsLoading(false)
       }
 
-      if (!isAuthenticated) {
-        return (
-          <div className="min-h-screen flex flex-col items-center justify-center p-4 animate-fadeIn" dir="rtl">
-            <div className="bg-white p-8 rounded-3xl shadow-lg max-w-md w-full border border-slate-100">
-              <div className="text-center mb-6">
-                <div className="inline-block p-4 bg-indigo-100 rounded-full mb-4">
-                  <ShieldCheck className="w-8 h-8 text-indigo-600" />
-                </div>
-                <h1 className="text-2xl font-bold text-slate-800">כניסת מנהל</h1>
-                <p className="text-slate-500 mt-2 text-sm">הכניסו את סיסמת המנהל לצפייה בציונים</p>
-              </div>
-              <form onSubmit={handleAdminLogin} className="space-y-4">
-                <input
-                  type="password"
-                  value={adminPassword}
-                  onChange={(e) => setAdminPassword(e.target.value)}
-                  placeholder="סיסמת מנהל"
-                  className="w-full p-4 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none text-center text-lg font-sans"
-                />
-                {loginError && <p className="text-red-500 text-sm text-center font-bold">סיסמה שגויה</p>}
-                {loadError && <p className="text-red-500 text-sm text-center">{loadError}</p>}
-                <button
-                  type="submit"
-                  disabled={isLoading || !adminPassword.trim()}
-                  className="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl hover:bg-indigo-700 transition-all shadow-md disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {isLoading ? <Loader2 className="animate-spin" /> : <ShieldCheck className="w-5 h-5" />}
-                  {isLoading ? 'מתחבר...' : 'כניסה'}
-                </button>
-                <button type="button" onClick={onLogout} className="w-full text-slate-400 text-sm hover:text-slate-600 transition-colors">
-                  חזרה לדשבורד תלמידים
-                </button>
-              </form>
-            </div>
-          </div>
-        )
+      useEffect(() => {
+        if (!clerkPublishableKey) {
+          setError('מפתח Clerk לא מוגדר — הוסף CLERK_PUBLISHABLE_KEY ל-Vercel')
+          setIsLoading(false)
+          return
+        }
+        const initClerk = async () => {
+          try {
+            const { default: Clerk } = await import('https://esm.sh/@clerk/clerk-js@5')
+            const clerkInstance = new Clerk(clerkPublishableKey)
+            await clerkInstance.load()
+            setClerk(clerkInstance)
+            if (clerkInstance.user) {
+              setIsSignedIn(true)
+              await loadGrades(clerkInstance)
+            } else {
+              if (mountRef.current) clerkInstance.mountSignIn(mountRef.current)
+              setIsLoading(false)
+            }
+            clerkInstance.addListener(async ({ user }) => {
+              if (user) {
+                setIsSignedIn(true)
+                await loadGrades(clerkInstance)
+              } else {
+                setIsSignedIn(false)
+                setGrades([])
+              }
+            })
+          } catch (e) {
+            setError('שגיאה באתחול Clerk')
+            setIsLoading(false)
+          }
+        }
+        initClerk()
+      }, [clerkPublishableKey])
+
+      const handleSignOut = async () => {
+        if (clerk) { await clerk.signOut() }
+        onLogout()
       }
+
+      if (isLoading) return (
+        <div className="min-h-screen flex items-center justify-center">
+          <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
+        </div>
+      )
+
+      if (error) return (
+        <div className="min-h-screen flex items-center justify-center p-4" dir="rtl">
+          <div className="bg-white p-8 rounded-3xl shadow-lg text-center max-w-md w-full">
+            <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <p className="text-red-600 font-bold mb-4">{error}</p>
+            <button onClick={onLogout} className="text-slate-500 hover:text-slate-700 font-bold">חזרה</button>
+          </div>
+        </div>
+      )
+
+      if (!isSignedIn) return (
+        <div className="min-h-screen flex flex-col items-center justify-center p-4 animate-fadeIn" dir="rtl">
+          <div className="bg-white p-8 rounded-3xl shadow-lg max-w-md w-full border border-slate-100">
+            <div className="text-center mb-6">
+              <div className="inline-block p-4 bg-indigo-100 rounded-full mb-4">
+                <ShieldCheck className="w-8 h-8 text-indigo-600" />
+              </div>
+              <h1 className="text-2xl font-bold text-slate-800">כניסת מנהל</h1>
+              <p className="text-slate-500 mt-2 text-sm">היכנסו עם חשבון Clerk שלכם</p>
+            </div>
+            <div ref={mountRef} className="flex justify-center" />
+            <button onClick={onLogout} className="w-full mt-4 text-xs text-slate-300 hover:text-slate-500 transition-colors">
+              חזרה לדשבורד תלמידים
+            </button>
+          </div>
+        </div>
+      )
 
       return (
         <div className="min-h-screen p-4 md:p-8 animate-fadeIn" dir="rtl">
@@ -142,10 +175,10 @@
                 </div>
               </div>
               <button
-                onClick={onLogout}
+                onClick={handleSignOut}
                 className="flex items-center gap-2 bg-white text-slate-600 font-bold px-4 py-2 rounded-xl border border-slate-200 hover:border-red-300 hover:text-red-600 transition-all"
               >
-                <LogOut className="w-4 h-4" /> יציאה
+                <LogOut className="w-4 h-4" /> התנתק
               </button>
             </div>
 
@@ -206,6 +239,7 @@
       const [passwordError, setPasswordError] = useState(false)
 
       const [isAdminMode, setIsAdminMode] = useState(false)
+      const [clerkPublishableKey, setClerkPublishableKey] = useState(null)
 
       const [selectedCategory, setSelectedCategory] = useState(null)
       const [selectedSubcategory, setSelectedSubcategory] = useState(null)
@@ -229,25 +263,19 @@
       useEffect(() => {
         const fetchData = async () => {
           try {
-            const [qRes, tRes] = await Promise.all([
+            const [qRes, tRes, configRes] = await Promise.all([
               fetch('./data/questions.json'),
-              fetch('./data/texts.json')
+              fetch('./data/texts.json'),
+              fetch('/api/config')
             ])
             const questions = await qRes.json()
             const texts = await tRes.json()
-
-            // accessKey — אם קיים, מגיע מ-config.json (אופציונלי)
-            let accessKey = null
-            try {
-              const cRes = await fetch('./data/config.json')
-              if (cRes.ok) {
-                const config = await cRes.json()
-                accessKey = config.accessKey || null
-              }
-            } catch (_) {}
+            const config = configRes.ok ? await configRes.json() : {}
 
             setAllData({ questions, texts })
+            setClerkPublishableKey(config.clerkPublishableKey || null)
 
+            const accessKey = config.accessKey || null
             if (accessKey) {
               setSitePassword(accessKey.toString())
               const savedPass = localStorage.getItem('bagrut_site_password')
@@ -435,7 +463,7 @@
 
       // --- Admin mode ---
       if (isAdminMode) {
-        return <AdminPanel onLogout={() => setIsAdminMode(false)} />
+        return <AdminPanel clerkPublishableKey={clerkPublishableKey} onLogout={() => setIsAdminMode(false)} />
       }
 
       if (isLoading) {

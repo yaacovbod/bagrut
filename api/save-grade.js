@@ -1,8 +1,4 @@
-export default async function handler(req) {
-  if (req.method !== 'POST') {
-    return new Response('Method Not Allowed', { status: 405 })
-  }
-
+export async function POST(req) {
   const { topic_id, studentName, studentClass, score, essay, feedback } = await req.json()
 
   const supabaseUrl = process.env.SUPABASE_URL

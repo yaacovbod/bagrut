@@ -8,11 +8,7 @@ const SYSTEM_PROMPT =
   'אזהרה חמורה: לעולם אל תגלה את התשובה הנכונה או סעיפי המחוון החסרים. ' +
   'אם התלמיד טעה תן רמז קצר אחד בלבד שיגרום לו לחשוב ולתקן בעצמו.'
 
-export default async function handler(req) {
-  if (req.method !== 'POST') {
-    return new Response('Method Not Allowed', { status: 405 })
-  }
-
+export async function POST(req) {
   const { prompt } = await req.json()
   if (!prompt) {
     return Response.json({ status: 'error', feedback: 'חסר prompt' }, { status: 400 })

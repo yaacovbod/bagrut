@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useMemo } from 'react'
-import { SignInButton, useUser, useClerk } from '@clerk/nextjs'
+import { SignInButton, UserButton, useUser, useClerk } from '@clerk/nextjs'
 import {
   BookOpen, CheckCircle, XCircle, ArrowRight,
   FileText, Sparkles, Loader2, MessageSquare,
@@ -9,48 +9,22 @@ import {
 } from 'lucide-react'
 
 // ---- Admin Panel ----
-function AdminPanel({ onBack }) {
-  const { isLoaded, isSignedIn } = useUser()
+function AdminPanel({ onSignOut }) {
   const { signOut } = useClerk()
   const [grades, setGrades] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    if (!isLoaded) return
-    if (isSignedIn) {
-      fetch('/api/grades')
-        .then(res => res.json())
-        .then(data => { setGrades(Array.isArray(data) ? data : []); setIsLoading(false) })
-        .catch(() => { setError('שגיאה בטעינת ציונים'); setIsLoading(false) })
-    } else {
-      setIsLoading(false)
-    }
-  }, [isLoaded, isSignedIn])
+    fetch('/api/grades')
+      .then(res => res.json())
+      .then(data => { setGrades(Array.isArray(data) ? data : []); setIsLoading(false) })
+      .catch(() => { setError('שגיאה בטעינת ציונים'); setIsLoading(false) })
+  }, [])
 
-  if (!isLoaded || isLoading) return (
+  if (isLoading) return (
     <div className="min-h-screen flex items-center justify-center">
       <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
-    </div>
-  )
-
-  if (!isSignedIn) return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 animate-fadeIn" dir="rtl">
-      <div className="bg-white p-8 rounded-3xl shadow-lg max-w-md w-full border border-slate-100 text-center">
-        <div className="inline-block p-4 bg-indigo-100 rounded-full mb-4">
-          <ShieldCheck className="w-8 h-8 text-indigo-600" />
-        </div>
-        <h1 className="text-2xl font-bold text-slate-800 mb-2">כניסת מנהל</h1>
-        <p className="text-slate-500 text-sm mb-6">היכנסו עם חשבון Clerk שלכם</p>
-        <SignInButton mode="modal">
-          <button className="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl hover:bg-indigo-700 transition-all shadow-md">
-            כניסה
-          </button>
-        </SignInButton>
-        <button onClick={onBack} className="w-full mt-3 text-xs text-slate-400 hover:text-slate-600 transition-colors">
-          חזרה לדשבורד תלמידים
-        </button>
-      </div>
     </div>
   )
 
@@ -66,7 +40,7 @@ function AdminPanel({ onBack }) {
             </div>
           </div>
           <button
-            onClick={() => { signOut(); onBack() }}
+            onClick={() => signOut()}
             className="flex items-center gap-2 bg-white text-slate-600 font-bold px-4 py-2 rounded-xl border border-slate-200 hover:border-red-300 hover:text-red-600 transition-all"
           >
             <LogOut className="w-4 h-4" /> התנתק
@@ -122,12 +96,16 @@ function AdminPanel({ onBack }) {
 }
 
 // ---- Main App ----
+const ADMIN_EMAIL = 'yaacovbod@gmail.com'
+
 export default function BagrutApp({ initialQuestions, initialTexts, accessKey }) {
+  const { isLoaded: userLoaded, isSignedIn, user } = useUser()
+  const isAdmin = isSignedIn && user?.primaryEmailAddress?.emailAddress === ADMIN_EMAIL
+
   const [isLoading, setIsLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [passwordInput, setPasswordInput] = useState('')
   const [passwordError, setPasswordError] = useState(false)
-  const [isAdminMode, setIsAdminMode] = useState(false)
 
   const [selectedCategory, setSelectedCategory] = useState(null)
   const [selectedSubcategory, setSelectedSubcategory] = useState(null)
@@ -291,7 +269,13 @@ export default function BagrutApp({ initialQuestions, initialTexts, accessKey })
     } catch { setIsSubmittingGrade(false) }
   }
 
-  if (isAdminMode) return <AdminPanel onBack={() => setIsAdminMode(false)} />
+  if (!userLoaded) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+    </div>
+  )
+
+  if (isAdmin) return <AdminPanel />
 
   if (isLoading) return (
     <div className="min-h-screen flex items-center justify-center">
@@ -317,7 +301,13 @@ export default function BagrutApp({ initialQuestions, initialTexts, accessKey })
           </button>
         </form>
         <div className="mt-6 text-center">
-          <button onClick={() => setIsAdminMode(true)} className="text-xs text-slate-300 hover:text-slate-500 transition-colors">כניסת מנהל</button>
+          {!isSignedIn ? (
+            <SignInButton mode="modal">
+              <button className="text-slate-200 hover:text-slate-400 transition-colors"><Lock className="w-3 h-3" /></button>
+            </SignInButton>
+          ) : (
+            <UserButton />
+          )}
         </div>
       </div>
     </div>
@@ -344,7 +334,13 @@ export default function BagrutApp({ initialQuestions, initialTexts, accessKey })
           ))}
         </div>
         <div className="mt-10 text-center">
-          <button onClick={() => setIsAdminMode(true)} className="text-xs text-slate-300 hover:text-slate-500 transition-colors">כניסת מנהל</button>
+          {!isSignedIn ? (
+            <SignInButton mode="modal">
+              <button className="text-slate-200 hover:text-slate-400 transition-colors"><Lock className="w-3 h-3" /></button>
+            </SignInButton>
+          ) : (
+            <UserButton />
+          )}
         </div>
       </div>
     </div>

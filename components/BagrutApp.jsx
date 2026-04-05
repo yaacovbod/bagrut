@@ -462,29 +462,34 @@ export default function BagrutApp({ initialQuestions, initialTexts, accessKey })
           {step?.step_type === 'text-selection' && (
             <div className="space-y-6 animate-fadeIn">
               <h2 className="text-xl font-bold text-center text-slate-800">{step.content}</h2>
-              <div className="bg-[#fdfbf7] p-6 rounded-2xl border border-amber-200 shadow-inner max-h-96 overflow-y-auto">
-                <div className="leading-loose text-lg">
+              <div className="bg-[#fdfbf7] p-4 rounded-2xl border border-amber-200 shadow-inner max-h-[28rem] overflow-y-auto">
+                <div className="text-base">
                   {displayedTexts.map(t => {
                     if (t.text?.startsWith('מקור')) return (
-                      <div key={t.id} className="mt-6 mb-3 first:mt-0 px-3 py-2 bg-amber-100 border border-amber-300 rounded-xl">
-                        <p className="font-bold text-amber-900 text-base">{t.text}</p>
+                      <div key={t.id} className="mt-6 mb-2 first:mt-0 px-3 py-2 bg-amber-100 border border-amber-300 rounded-xl">
+                        <p className="font-bold text-amber-900 text-sm">{t.text}</p>
                       </div>
                     )
                     if (t.text?.startsWith('(')) return (
-                      <div key={t.id} className="mt-4 pt-3 border-t border-amber-200">
-                        <p className="text-sm text-slate-400 italic">{t.text}</p>
+                      <div key={t.id} className="mt-2 pt-2 border-t border-amber-200">
+                        <p className="text-xs text-slate-400 italic">{t.text}</p>
+                      </div>
+                    )
+                    if (/^\d/.test(t.text)) return (
+                      <div key={t.id} className="mt-4 mb-1 px-3">
+                        <p className="text-sm font-semibold text-amber-700">{t.text}</p>
                       </div>
                     )
                     const correctOnes = Array.isArray(step.correct_answer) ? step.correct_answer.map(String) : [String(step.correct_answer)]
                     const isCorrectSegment = correctOnes.includes(String(t.id))
                     const isWrong = wrongAnswers.includes(parseInt(t.id))
                     const isSelected = Array.isArray(selectedAnswer) ? selectedAnswer.includes(parseInt(t.id)) : String(selectedAnswer) === String(t.id)
-                    let cls = "cursor-pointer transition-colors px-1 rounded mx-0.5 "
-                    if (showExplanation) cls += isCorrectSegment ? "bg-green-300 font-bold" : isWrong ? "bg-red-200 line-through text-red-500 opacity-60" : "text-slate-400"
-                    else if (isSelected) cls += showErrorMsg ? (isCorrectSegment ? "bg-green-200" : "bg-red-200 line-through") : "bg-blue-200"
-                    else if (isWrong) cls += "bg-red-200 line-through text-red-600"
-                    else cls += "hover:bg-amber-100"
-                    return <span key={t.id} onClick={() => handleAnswerSelect(parseInt(t.id))} className={cls}>{t.text} </span>
+                    let cls = "cursor-pointer transition-all py-2.5 px-3 rounded-lg border-b border-amber-100 block w-full text-right leading-relaxed "
+                    if (showExplanation) cls += isCorrectSegment ? "bg-green-100 border-green-200 font-bold text-green-900" : isWrong ? "bg-red-50 line-through text-red-400 opacity-60" : "text-slate-400"
+                    else if (isSelected) cls += showErrorMsg ? (isCorrectSegment ? "bg-green-100 border-green-200 text-green-900" : "bg-red-100 line-through border-red-200 text-red-600") : "bg-blue-100 border-blue-200 text-blue-900"
+                    else if (isWrong) cls += "bg-red-50 line-through text-red-500 border-red-100"
+                    else cls += "hover:bg-amber-50 hover:border-amber-300 text-slate-800"
+                    return <div key={t.id} onClick={() => handleAnswerSelect(parseInt(t.id))} className={cls}>{t.text}</div>
                   })}
                 </div>
               </div>

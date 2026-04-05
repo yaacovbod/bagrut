@@ -428,7 +428,7 @@ export default function BagrutApp({ initialQuestions, initialTexts, accessKey })
           </button>
           <div className="text-center">
             <h1 className="text-lg md:text-xl font-bold">
-              {step?.step_type === 'intro' ? step?.title : `שאלה ${questionNumber}`}
+              {step?.step_type === 'intro' ? 'קריאת המקור' : `שאלה ${questionNumber}`}
             </h1>
             <p className="text-amber-100 text-xs">{step?.subtitle}</p>
           </div>
@@ -447,6 +447,11 @@ export default function BagrutApp({ initialQuestions, initialTexts, accessKey })
                         <p className="font-bold text-amber-900 text-base">{t.text}</p>
                       </div>
                     )
+                    if (t.text?.startsWith('(')) return (
+                      <div key={t.id} className="mt-4 pt-3 border-t border-amber-200">
+                        <p className="text-sm text-slate-400 italic">{t.text}</p>
+                      </div>
+                    )
                     return <span key={t.id}>{t.text} </span>
                   })}
                 </div>
@@ -463,6 +468,11 @@ export default function BagrutApp({ initialQuestions, initialTexts, accessKey })
                     if (t.text?.startsWith('מקור')) return (
                       <div key={t.id} className="mt-6 mb-3 first:mt-0 px-3 py-2 bg-amber-100 border border-amber-300 rounded-xl">
                         <p className="font-bold text-amber-900 text-base">{t.text}</p>
+                      </div>
+                    )
+                    if (t.text?.startsWith('(')) return (
+                      <div key={t.id} className="mt-4 pt-3 border-t border-amber-200">
+                        <p className="text-sm text-slate-400 italic">{t.text}</p>
                       </div>
                     )
                     const correctOnes = Array.isArray(step.correct_answer) ? step.correct_answer.map(String) : [String(step.correct_answer)]

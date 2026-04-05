@@ -388,12 +388,12 @@ export default function BagrutApp({ initialQuestions, initialTexts, accessKey })
           </button>
           <h2 className="text-2xl font-bold text-slate-800 mb-6">{selectedSubcategory}</h2>
           <div className="grid grid-cols-1 gap-4">
-            {topicList.map(q => (
+            {topicList.map((q, index) => (
               <button key={q.id} onClick={() => setSelectedTopic(q.id)}
                 className="bg-white/90 backdrop-blur-sm p-5 rounded-2xl shadow-sm border border-slate-200 hover:border-amber-500 transition-all text-right group flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="bg-amber-50 p-2 rounded-lg text-amber-500 group-hover:bg-amber-600 group-hover:text-white transition-colors"><Bookmark className="w-5 h-5" /></div>
-                  <span className="text-lg font-bold text-slate-700 group-hover:text-amber-700 transition-colors">{q.title}</span>
+                  <span className="text-lg font-bold text-slate-700 group-hover:text-amber-700 transition-colors">שאלה {index + 1}</span>
                 </div>
                 <ChevronLeft className="text-slate-300 group-hover:text-amber-500" />
               </button>

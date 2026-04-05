@@ -167,6 +167,15 @@ export default function BagrutApp({ initialQuestions, initialTexts, accessKey })
 
   const step = currentSteps[currentStep] || null
 
+  const questionNumber = useMemo(() => {
+    if (!step || step.step_type === 'intro') return null
+    let count = 0
+    for (let i = 0; i <= currentStep; i++) {
+      if (currentSteps[i]?.step_type !== 'intro') count++
+    }
+    return count
+  }, [step, currentSteps, currentStep])
+
   const safeOptions = useMemo(() => {
     if (!step?.options) return []
     if (Array.isArray(step.options)) return step.options
@@ -418,7 +427,9 @@ export default function BagrutApp({ initialQuestions, initialTexts, accessKey })
             <ArrowRight className="w-6 h-6" />
           </button>
           <div className="text-center">
-            <h1 className="text-lg md:text-xl font-bold">{step?.title}</h1>
+            <h1 className="text-lg md:text-xl font-bold">
+              {step?.step_type === 'intro' ? step?.title : `שאלה ${questionNumber}`}
+            </h1>
             <p className="text-amber-100 text-xs">{step?.subtitle}</p>
           </div>
           <div className="bg-amber-700 px-3 py-1 rounded-lg text-xs font-bold">{currentStep + 1} / {currentSteps.length}</div>

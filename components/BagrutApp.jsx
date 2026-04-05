@@ -331,7 +331,9 @@ export default function BagrutApp({ initialQuestions, initialTexts, accessKey })
           <p className="text-slate-800 font-medium bg-white/50 inline-block px-4 py-1 rounded-full">בחרו קטגוריה כדי להתחיל</p>
         </header>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {Object.keys(dashboardStructure).map(cat => (
+          {['מלחמת העולם השנייה והשואה', 'סוגיות נבחרות בתולדות מדינת ישראל']
+            .filter(cat => dashboardStructure[cat])
+            .map(cat => (
             <button key={cat} onClick={() => setSelectedCategory(cat)}
               className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-amber-500 hover:shadow-md transition-all text-right group flex items-center justify-between">
               <div className="flex items-center gap-4">

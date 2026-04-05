@@ -1,53 +1,41 @@
-# CLAUDE.md
+# דשבורד הכנה לבגרות בהיסטוריה
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## מה הפרויקט עושה
+אפליקציה לתרגול לבחינות בגרות בהיסטוריה לתלמידים ישראלים.
+תלמיד בוחר קטגוריה → תת-קטגוריה → נושא → עובר על שלבים אינטראקטיביים.
 
-## Project Overview
+## Tech Stack
+- Next.js App Router (JS, לא TS), Tailwind CSS
+- Clerk — אוטנטיקציה
+- Claude API — ציון חיבורים פתוחים (דרך `/api/grade`)
+- Upstash Redis — שמירת ציונים
+- קובץ `data/questions.json` + `data/texts.json` — כל התוכן
 
-A single-page Hebrew RTL web app for Israeli high school history Bagrut (matriculation exam) preparation. Students practice with interactive questions, text-selection exercises, and AI-graded open-ended essay questions.
+## מבנה קבצים חשוב
+- `components/BagrutApp.jsx` — כל ה-UI (569 שורות, קומפוננטה אחת גדולה)
+- `app/page.js` — טוען data מה-JSON ומעביר ל-BagrutApp
+- `app/api/grade/route.js` — קריאה ל-Claude לציון חיבורים
+- `app/api/save-grade/route.js` — שמירת ציון ב-Redis
+- `app/api/grades/route.js` — שליפת ציונים (למנהל)
 
-## Architecture
+## Flow ניווט
+category → subcategory → topic → steps (currentStep index)
 
-Everything lives in a single `index.html` file — there is no build step, bundler, or package manager. The app runs entirely in the browser using:
+## סוגי שלבים (step_type)
+- `intro` — הצגת טקסט מקור
+- `question` — בחירה מרובה
+- `text-selection` — בחירת קטע מהמקור
+- `ai-practice` — חיבור פתוח שנבדק ע"י AI
 
-- **React 18** via ESM imports (`esm.sh`)
-- **Babel Standalone** for JSX transpilation at runtime
-- **Tailwind CSS** via CDN
-- **Google Fonts** (Rubik) for Hebrew text
+## סגנון — Golden Hour
+- **Tailwind classes** (לא inline styles)
+- צבעים: `amber-*` לכל הכפתורים, הדגשים, הכרטיסים
+- `slate-*` — טקסט ורקעים נייטרליים
+- `green-*` / `red-*` — פידבק נכון/שגוי (לא לשנות)
+- רקע: background image עם שכבת amber (`rgba(251,243,220,0.60)`)
 
-The app communicates with a Google Apps Script backend (`GOOGLE_SCRIPT_URL`) that serves JSON data and handles AI essay grading and grade submission.
-
-## Data Model
-
-All data is fetched on load from the Google Apps Script endpoint. The response shape:
-
-```js
-{
-  questions: [],          // array of step objects
-  texts: {},              // map of topic_id → array of text segments
-  dashboardStructure: {}, // nested: category → subcategories → topics[]
-  accessKey: "..."        // optional password for site access
-}
-```
-
-**Step types** (`step.step_type`):
-- `intro` — displays topic intro text + full source text
-- `question` — multiple choice with `options` (pipe-delimited string or array), `correct_answer` (index)
-- `text-selection` — click segments of source text; supports `require_multiple` for multi-select
-- `ai-practice` — open-ended essay graded by AI via POST to `GOOGLE_SCRIPT_URL`
-
-## Navigation Flow
-
-Category → Subcategory → Topic → Steps (indexed by `currentStep`)
-
-The `resetQuestionState` helper function exists to reset all step-level state when navigating back. When adding new state tied to a step, ensure it's also cleared in: `resetQuestionState`, the back button handler in the header, and the `handleSubmitGrade` timeout callback.
-
-## No Build / Development Setup
-
-Open `index.html` directly in a browser — no server required. All CDN resources are loaded at runtime, so an internet connection is needed.
-
-To preview changes, just refresh the browser after editing `index.html`.
-
-## Deployment
-
-The app is a static file. Deployment means committing `index.html` and pushing to the repo (which is likely served via GitHub Pages or similar).
+## כללים
+- אל תשנה את ה-Clerk config בלי לשאול
+- `ADMIN_EMAIL = 'yaacovbod@gmail.com'` — לא לשנות
+- הפרויקט בעברית RTL — שמור על כל הטקסטים בעברית
+- אל תפצל את BagrutApp.jsx לקומפוננטות קטנות בלי אישור

@@ -8,7 +8,7 @@ html, body {
 }
 
 body {
-  background: linear-gradient(rgba(255, 255, 255, 0.50), rgba(255, 255, 255, 0.50)), url('/backround.png');
+  background: linear-gradient(rgba(251, 243, 220, 0.60), rgba(251, 243, 220, 0.60)), url('/backround.png');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;

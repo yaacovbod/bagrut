@@ -24,7 +24,7 @@ function AdminPanel({ onSignOut }) {
 
   if (isLoading) return (
     <div className="min-h-screen flex items-center justify-center">
-      <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
+      <Loader2 className="w-12 h-12 text-amber-600 animate-spin" />
     </div>
   )
 
@@ -33,7 +33,7 @@ function AdminPanel({ onSignOut }) {
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
-            <div className="bg-indigo-100 p-3 rounded-2xl"><ShieldCheck className="w-6 h-6 text-indigo-600" /></div>
+            <div className="bg-amber-100 p-3 rounded-2xl"><ShieldCheck className="w-6 h-6 text-amber-600" /></div>
             <div>
               <h1 className="text-2xl font-bold text-slate-800">פאנל מנהל</h1>
               <p className="text-slate-500 text-sm">{grades.length} ציונים שנשמרו</p>
@@ -271,7 +271,7 @@ export default function BagrutApp({ initialQuestions, initialTexts, accessKey })
 
   if (!userLoaded) return (
     <div className="min-h-screen flex items-center justify-center">
-      <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+      <Loader2 className="w-12 h-12 text-amber-600 animate-spin" />
     </div>
   )
 
@@ -279,7 +279,7 @@ export default function BagrutApp({ initialQuestions, initialTexts, accessKey })
 
   if (isLoading) return (
     <div className="min-h-screen flex items-center justify-center">
-      <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+      <Loader2 className="w-12 h-12 text-amber-600 animate-spin" />
     </div>
   )
 
@@ -287,16 +287,16 @@ export default function BagrutApp({ initialQuestions, initialTexts, accessKey })
     <div className="min-h-screen flex flex-col items-center justify-center p-4 animate-fadeIn text-right" dir="rtl">
       <div className="bg-white p-8 rounded-3xl shadow-lg max-w-md w-full border border-slate-100">
         <div className="text-center mb-6">
-          <div className="inline-block p-4 bg-blue-100 rounded-full mb-4"><Lock className="w-8 h-8 text-blue-600" /></div>
+          <div className="inline-block p-4 bg-amber-100 rounded-full mb-4"><Lock className="w-8 h-8 text-amber-600" /></div>
           <h1 className="text-2xl font-bold text-slate-800">כניסה למערכת התרגול</h1>
           <p className="text-slate-500 mt-2">הקלידו את הסיסמה שקיבלתם מהמורה</p>
         </div>
         <form onSubmit={handleLoginSubmit} className="space-y-4">
           <input type="password" value={passwordInput} onChange={e => setPasswordInput(e.target.value)}
             placeholder="סיסמת גישה"
-            className="w-full p-4 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none text-center text-lg" />
+            className="w-full p-4 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-amber-500 outline-none text-center text-lg" />
           {passwordError && <p className="text-red-500 text-sm text-center font-bold">הסיסמה שגויה נסו שוב</p>}
-          <button type="submit" className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl hover:bg-blue-700 transition-all shadow-md">
+          <button type="submit" className="w-full bg-amber-600 text-white font-bold py-4 rounded-2xl hover:bg-amber-700 transition-all shadow-md">
             היכנסו לדשבורד
           </button>
         </form>
@@ -317,19 +317,19 @@ export default function BagrutApp({ initialQuestions, initialTexts, accessKey })
     <div className="min-h-screen p-4 md:p-8 animate-fadeIn text-right" dir="rtl">
       <div className="max-w-4xl mx-auto">
         <header className="mb-10 text-center">
-          <div className="inline-block p-3 bg-blue-100 rounded-2xl mb-4 shadow-sm"><LayoutDashboard className="w-8 h-8 text-blue-600" /></div>
+          <div className="inline-block p-3 bg-amber-100 rounded-2xl mb-4 shadow-sm"><LayoutDashboard className="w-8 h-8 text-amber-600" /></div>
           <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-2">דשבורד הכנה לבגרות</h1>
           <p className="text-slate-800 font-medium bg-white/50 inline-block px-4 py-1 rounded-full">בחרו קטגוריה כדי להתחיל</p>
         </header>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {Object.keys(dashboardStructure).map(cat => (
             <button key={cat} onClick={() => setSelectedCategory(cat)}
-              className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-blue-500 hover:shadow-md transition-all text-right group flex items-center justify-between">
+              className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-amber-500 hover:shadow-md transition-all text-right group flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="bg-blue-100 p-3 rounded-xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors"><BookOpen className="w-6 h-6" /></div>
-                <h3 className="text-2xl font-bold text-slate-800 group-hover:text-blue-600 transition-colors">{cat}</h3>
+                <div className="bg-amber-100 p-3 rounded-xl text-amber-600 group-hover:bg-amber-600 group-hover:text-white transition-colors"><BookOpen className="w-6 h-6" /></div>
+                <h3 className="text-2xl font-bold text-slate-800 group-hover:text-amber-600 transition-colors">{cat}</h3>
               </div>
-              <ChevronLeft className="text-slate-300 group-hover:text-blue-500 transition-transform group-hover:-translate-x-1" />
+              <ChevronLeft className="text-slate-300 group-hover:text-amber-500 transition-transform group-hover:-translate-x-1" />
             </button>
           ))}
         </div>
@@ -349,19 +349,19 @@ export default function BagrutApp({ initialQuestions, initialTexts, accessKey })
   if (!selectedSubcategory) return (
     <div className="min-h-screen p-4 md:p-8 animate-fadeIn text-right" dir="rtl">
       <div className="max-w-4xl mx-auto">
-        <button onClick={() => setSelectedCategory(null)} className="bg-white/80 backdrop-blur-sm text-slate-700 hover:text-blue-600 flex items-center gap-2 mb-6 font-bold py-2 px-4 rounded-xl transition-colors">
+        <button onClick={() => setSelectedCategory(null)} className="bg-white/80 backdrop-blur-sm text-slate-700 hover:text-amber-600 flex items-center gap-2 mb-6 font-bold py-2 px-4 rounded-xl transition-colors">
           <ArrowRight className="w-5 h-5" /> חזרה לקטגוריות
         </button>
         <h2 className="text-2xl font-bold text-slate-800 mb-6">{selectedCategory} — רשימת נושאים</h2>
         <div className="grid grid-cols-1 gap-4">
           {Object.keys(dashboardStructure[selectedCategory]?.subcategories || {}).map(sub => (
             <button key={sub} onClick={() => setSelectedSubcategory(sub)}
-              className="bg-white/90 backdrop-blur-sm p-5 rounded-2xl shadow-sm border border-slate-200 hover:border-blue-500 transition-all text-right group flex items-center justify-between">
+              className="bg-white/90 backdrop-blur-sm p-5 rounded-2xl shadow-sm border border-slate-200 hover:border-amber-500 transition-all text-right group flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="bg-slate-100 p-2 rounded-lg text-slate-500 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors"><Folder className="w-5 h-5" /></div>
+                <div className="bg-slate-100 p-2 rounded-lg text-slate-500 group-hover:bg-amber-100 group-hover:text-amber-600 transition-colors"><Folder className="w-5 h-5" /></div>
                 <span className="text-lg font-bold text-slate-700 group-hover:text-blue-700 transition-colors">{sub}</span>
               </div>
-              <ChevronLeft className="text-slate-300 group-hover:text-blue-500" />
+              <ChevronLeft className="text-slate-300 group-hover:text-amber-500" />
             </button>
           ))}
         </div>
@@ -374,19 +374,19 @@ export default function BagrutApp({ initialQuestions, initialTexts, accessKey })
     return (
       <div className="min-h-screen p-4 md:p-8 animate-fadeIn text-right" dir="rtl">
         <div className="max-w-4xl mx-auto">
-          <button onClick={() => setSelectedSubcategory(null)} className="bg-white/80 backdrop-blur-sm text-slate-700 hover:text-blue-600 flex items-center gap-2 mb-6 font-bold py-2 px-4 rounded-xl transition-colors">
+          <button onClick={() => setSelectedSubcategory(null)} className="bg-white/80 backdrop-blur-sm text-slate-700 hover:text-amber-600 flex items-center gap-2 mb-6 font-bold py-2 px-4 rounded-xl transition-colors">
             <ArrowRight className="w-5 h-5" /> חזרה לרשימת הנושאים
           </button>
           <h2 className="text-2xl font-bold text-slate-800 mb-6">{selectedSubcategory}</h2>
           <div className="grid grid-cols-1 gap-4">
             {topicList.map(q => (
               <button key={q.id} onClick={() => setSelectedTopic(q.id)}
-                className="bg-white/90 backdrop-blur-sm p-5 rounded-2xl shadow-sm border border-slate-200 hover:border-indigo-500 transition-all text-right group flex items-center justify-between">
+                className="bg-white/90 backdrop-blur-sm p-5 rounded-2xl shadow-sm border border-slate-200 hover:border-amber-500 transition-all text-right group flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="bg-indigo-50 p-2 rounded-lg text-indigo-500 group-hover:bg-indigo-600 group-hover:text-white transition-colors"><Bookmark className="w-5 h-5" /></div>
-                  <span className="text-lg font-bold text-slate-700 group-hover:text-indigo-700 transition-colors">{q.title}</span>
+                  <div className="bg-amber-50 p-2 rounded-lg text-amber-500 group-hover:bg-amber-600 group-hover:text-white transition-colors"><Bookmark className="w-5 h-5" /></div>
+                  <span className="text-lg font-bold text-slate-700 group-hover:text-amber-700 transition-colors">{q.title}</span>
                 </div>
-                <ChevronLeft className="text-slate-300 group-hover:text-indigo-500" />
+                <ChevronLeft className="text-slate-300 group-hover:text-amber-500" />
               </button>
             ))}
           </div>
@@ -400,7 +400,7 @@ export default function BagrutApp({ initialQuestions, initialTexts, accessKey })
       <div className="bg-white p-8 rounded-3xl shadow-lg border border-red-200 max-w-lg w-full text-center">
         <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
         <h2 className="text-2xl font-bold text-slate-800 mb-2">אין שאלות לנושא זה</h2>
-        <button onClick={() => setSelectedTopic(null)} className="bg-blue-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-blue-700 transition-colors">חזרה לדשבורד</button>
+        <button onClick={() => setSelectedTopic(null)} className="bg-amber-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-amber-700 transition-colors">חזרה לדשבורד</button>
       </div>
     </div>
   )
@@ -412,22 +412,22 @@ export default function BagrutApp({ initialQuestions, initialTexts, accessKey })
 
   return (
     <div className="min-h-screen py-4 px-2 sm:px-4 animate-fadeIn text-right" dir="rtl">
-      <div className="max-w-3xl mx-auto bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl overflow-hidden border border-slate-100">
-        <div className="bg-blue-600 text-white p-4 md:p-6 flex items-center justify-between">
-          <button onClick={resetStep} className="p-2 hover:bg-blue-700 rounded-lg transition-colors">
+      <div className="max-w-3xl mx-auto bg-amber-50/95 backdrop-blur-md rounded-3xl shadow-2xl overflow-hidden border border-amber-200">
+        <div className="bg-amber-600 text-white p-4 md:p-6 flex items-center justify-between">
+          <button onClick={resetStep} className="p-2 hover:bg-amber-700 rounded-lg transition-colors">
             <ArrowRight className="w-6 h-6" />
           </button>
           <div className="text-center">
             <h1 className="text-lg md:text-xl font-bold">{step?.title}</h1>
-            <p className="text-blue-100 text-xs">{step?.subtitle}</p>
+            <p className="text-amber-100 text-xs">{step?.subtitle}</p>
           </div>
-          <div className="bg-blue-700 px-3 py-1 rounded-lg text-xs font-bold">{currentStep + 1} / {currentSteps.length}</div>
+          <div className="bg-amber-700 px-3 py-1 rounded-lg text-xs font-bold">{currentStep + 1} / {currentSteps.length}</div>
         </div>
 
         <div className="p-4 md:p-8">
           {step?.step_type === 'intro' && (
             <div className="space-y-6 animate-fadeIn">
-              <div className="bg-blue-50 p-5 rounded-2xl text-blue-900 leading-relaxed font-medium">{step.content}</div>
+              <div className="bg-amber-50 p-5 rounded-2xl text-amber-900 leading-relaxed font-medium">{step.content}</div>
               <div className="bg-[#fdfbf7] p-6 rounded-2xl border border-amber-200 shadow-inner max-h-96 overflow-y-auto">
                 <div className="leading-loose text-lg text-slate-800">
                   {currentTexts.map(t => {
@@ -480,7 +480,7 @@ export default function BagrutApp({ initialQuestions, initialTexts, accessKey })
                 let cls = "w-full text-right p-4 rounded-2xl border-2 transition-all "
                 if (showExplanation && isCorrect) cls += "border-green-500 bg-green-50 text-green-900 font-bold"
                 else if (isWrong) cls += "border-red-300 bg-red-50 text-red-500 line-through opacity-70"
-                else cls += "border-slate-200 hover:border-blue-400 hover:bg-blue-50 text-slate-700"
+                else cls += "border-slate-200 hover:border-amber-400 hover:bg-amber-50 text-slate-700"
                 return <button key={idx} onClick={() => handleAnswerSelect(idx)} disabled={showExplanation} className={cls}>{opt}</button>
               })}
               {showExplanation && <div className="bg-green-100 p-5 rounded-2xl text-green-900 flex gap-3"><CheckCircle className="shrink-0" /><p>{step.explanation}</p></div>}
@@ -501,13 +501,13 @@ export default function BagrutApp({ initialQuestions, initialTexts, accessKey })
                 </div>
               )}
               {!aiFeedback && (
-                <div className="bg-indigo-50 p-6 rounded-3xl border-2 border-indigo-100">
+                <div className="bg-amber-50 p-6 rounded-3xl border-2 border-amber-100">
                   <p className="text-lg text-slate-800 font-medium leading-relaxed whitespace-pre-line">{step.content}</p>
                   <textarea value={userEssay} onChange={e => setUserEssay(e.target.value)}
-                    className="w-full h-44 p-5 mt-5 rounded-2xl border-none shadow-inner focus:ring-2 focus:ring-indigo-500 outline-none text-slate-700"
+                    className="w-full h-44 p-5 mt-5 rounded-2xl border-none shadow-inner focus:ring-2 focus:ring-amber-500 outline-none text-slate-700"
                     placeholder="כתבו כאן את התשובה המפורטת שלכם" />
                   <button onClick={handleGradeEssay} disabled={isGrading || !userEssay.trim()}
-                    className="w-full mt-5 bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-indigo-700 transition-all flex items-center justify-center gap-3 disabled:opacity-50">
+                    className="w-full mt-5 bg-amber-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-amber-700 transition-all flex items-center justify-center gap-3 disabled:opacity-50">
                     {isGrading ? <Loader2 className="animate-spin" /> : <Sparkles />}
                     {isGrading ? 'המורה בודק...' : 'שלח לבדיקת בינה מלאכותית'}
                   </button>
@@ -515,7 +515,7 @@ export default function BagrutApp({ initialQuestions, initialTexts, accessKey })
               )}
               {aiFeedback && (
                 <div className={`bg-white p-6 rounded-3xl border-2 shadow-sm animate-fadeIn ${aiScore >= 80 ? 'border-green-300' : 'border-amber-300'}`}>
-                  <h3 className="text-xl font-bold mb-4 text-slate-800 flex items-center gap-2"><MessageSquare className="text-blue-500" /> משוב המורה:</h3>
+                  <h3 className="text-xl font-bold mb-4 text-slate-800 flex items-center gap-2"><MessageSquare className="text-amber-500" /> משוב המורה:</h3>
                   <p className="whitespace-pre-line text-slate-700 text-lg leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">{aiFeedback}</p>
                   {aiScore !== null && aiScore >= 80 && !isSubmitted && (
                     <div className="mt-6 bg-green-50 p-5 rounded-2xl border border-green-200">
@@ -540,8 +540,8 @@ export default function BagrutApp({ initialQuestions, initialTexts, accessKey })
                     </div>
                   )}
                   {isSubmitted && (
-                    <div className="mt-6 bg-blue-50 p-5 rounded-2xl text-blue-900 font-bold text-center">
-                      <CheckCircle className="w-10 h-10 mx-auto text-blue-500 mb-2" />
+                    <div className="mt-6 bg-amber-50 p-5 rounded-2xl text-amber-900 font-bold text-center">
+                      <CheckCircle className="w-10 h-10 mx-auto text-amber-500 mb-2" />
                       הציון נשמר בהצלחה — חוזר לדשבורד
                     </div>
                   )}
@@ -551,14 +551,14 @@ export default function BagrutApp({ initialQuestions, initialTexts, accessKey })
           )}
         </div>
 
-        <div className="bg-slate-50 p-5 border-t flex items-center justify-between">
+        <div className="bg-amber-50 p-5 border-t border-amber-200 flex items-center justify-between">
           <button onClick={() => setCurrentStep(p => p - 1)} disabled={currentStep === 0}
             className="flex items-center gap-2 px-4 py-2 text-slate-500 font-bold disabled:opacity-20 transition-opacity">
             <ArrowRight className="w-5 h-5" /> חזור
           </button>
           {currentStep < currentSteps.length - 1 && (
             <button onClick={() => setCurrentStep(p => p + 1)}
-              className="bg-blue-600 text-white font-bold px-10 py-3 rounded-2xl hover:bg-blue-700 transition-all">
+              className="bg-amber-600 text-white font-bold px-10 py-3 rounded-2xl hover:bg-amber-700 transition-all">
               המשך
             </button>
           )}

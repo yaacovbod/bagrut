@@ -87,6 +87,7 @@ The entire student experience lives in one large client component: `components/B
 - texts.json: NO entry for this topic_id
 - questions.json: single ai-practice step with `image_url` set to filename
 - No text-selection steps
+- **IMPORTANT:** Gemini cannot read images. The `reference_answer` must be the official Ministry of Education answer key — always ask the user to provide it before adding the question.
 
 **Type 3: השוואה בין שני טקסטים** (two-source comparison)
 - Examples: `olim_q2`, `shoah_q1`, `shoah_q3`, `shoah_q4`

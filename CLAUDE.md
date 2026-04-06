@@ -67,3 +67,104 @@ The entire student experience lives in one large client component: `components/B
 ```
 
 `grades` Supabase table columns: `id, topic_id, student_name, student_class, score, essay, feedback, created_at`
+
+## Adding Questions
+
+### topic_id naming convention
+`{subject}_{q}{number}` — e.g. `shoah_q4`, `deco_q2`
+
+---
+
+### 3 Question Types
+
+**Type 1: ניתוח טקסט בלבד** (single text analysis)
+- Examples: `deco_q1`–`deco_q5`, `olim_q1`, `shoah_q2`
+- texts.json: one source, ids 1..N (one sentence per id)
+- steps: intro → text-selection(s) → question → ai-practice
+
+**Type 2: ניתוח מקור חזותי** (visual source)
+- Example: `deco_q6` (krokodil.jpg)
+- texts.json: NO entry for this topic_id
+- questions.json: single ai-practice step with `image_url` set to filename
+- No text-selection steps
+
+**Type 3: השוואה בין שני טקסטים** (two-source comparison)
+- Examples: `olim_q2`, `shoah_q1`, `shoah_q3`, `shoah_q4`
+- texts.json: ids 1–9 for source 1, ids 10–16 for source 2 (approx.)
+- steps: intro → text-selection(source 1) → text-selection(source 2) → question → ai-practice
+
+---
+
+### texts.json format
+```json
+"topic_id": [
+  { "id": 1, "text": "מקור 1 – שם המקור, תאריך." },
+  { "id": 2, "text": "משפט ראשון." },
+  { "id": 3, "text": "משפט שני." }
+]
+```
+- id 1 (or -1): header line starting with "מקור 1 –"
+- One sentence or short clause per entry
+- For two-source topics: id 10 is the header of source 2
+
+---
+
+### Step types (questions.json)
+
+**intro** — always first
+```json
+{
+  "step_type": "intro",
+  "title": "כותרת הנושא",
+  "subtitle": "מועד הבחינה",
+  "content": "תיאור המקורות + הוראת קריאה",
+  "options": [], "correct_answer": "", "explanation": "",
+  "require_multiple": false, "image_url": null, "reference_answer": null
+}
+```
+
+**text-selection** — one per source (skip for visual type)
+```json
+{
+  "step_type": "text-selection",
+  "subtitle": "איתור בטקסט – מקור 1",
+  "content": "סמנו את המשפט ש...",
+  "options": ["'1-9'"],      // range of ids for this source
+  "correct_answer": 4,       // specific sentence id to highlight
+  "explanation": "הסבר למה זה המשפט הנכון",
+  "require_multiple": false  // true only if student must pick 2+ sentences
+}
+```
+
+**question** — multiple-choice knowledge question
+```json
+{
+  "step_type": "question",
+  "content": "שאלה?",
+  "options": ["תשובה א", "תשובה ב", "תשובה ג", "תשובה ד"],
+  "correct_answer": 1,       // 0-based index
+  "explanation": "הסבר התשובה הנכונה"
+}
+```
+
+**ai-practice** — always last; open essay graded by Gemini
+```json
+{
+  "step_type": "ai-practice",
+  "subtitle": "שאלה פתוחה – 17 נקודות",
+  "content": "נוסח השאלה המלא כולל סעיפים",
+  "image_url": null,         // set to filename for visual type
+  "options": [], "correct_answer": "", "explanation": "",
+  "reference_answer": "תשובת מפתח מפורטת לכל סעיף"
+}
+```
+
+---
+
+### Workflow for adding a new question
+1. Ask which of the 3 types it is
+2. Get the source texts and question wording
+3. Add entry to texts.json (skip for visual type)
+4. Add 5 steps to questions.json (4 for visual type — no text-selection)
+5. Validate JSON: `node -e "JSON.parse(require('fs').readFileSync('data/questions.json'))"`
+6. git add + commit + push
